@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Reminder Desk</title>
 <meta name="theme-color" content="#E6EDF1">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Reminder Desk">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%231F2A44'/%3E%3Cpath d='M14 19.5a8 8 0 0 1 11-6.5M50 19.5a8 8 0 0 0-11-6.5' fill='none' stroke='%237FD6C2' stroke-width='4.5' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='35' r='17' fill='%23fff'/%3E%3Cpath d='M32 25v10l7 5' fill='none' stroke='%231F2A44' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -133,7 +138,7 @@
   }
   input::placeholder, textarea::placeholder { color: #8C99A8; }
   textarea { min-height: 92px; resize: vertical; line-height: 1.45; }
-  #message { min-height: 104px; font-size: 18px; }
+  #message { min-height: 80px; font-size: 18px; }
   input:focus, textarea:focus {
     outline: 3px solid rgba(47, 125, 109, 0.22);
     border-color: var(--teal);
@@ -449,164 +454,70 @@
   .note { font-size: 14px; color: var(--muted); margin: -6px 0 16px; }
   .field-hint { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
 
-  /* ---------- Date and time picker ---------- */
-  .when { margin: 0 0 4px; border-radius: 14px; outline: none; }
+  /* ---------- When ---------- */
+  .when { border-radius: 14px; outline: none; }
   .when[aria-invalid=true] { box-shadow: 0 0 0 2px var(--err); }
-  .when-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
   .group-label { display: block; font-weight: 600; font-size: 14px; color: var(--ink); margin-bottom: 8px; }
-  .when-row .group-label { margin-bottom: 0; }
-  .text-btn.small { font-size: 14px; padding: 4px 2px; }
-
-  .days {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding: 2px 2px 8px;
-    margin: 0 0 10px;
-    scroll-snap-type: x proximity;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .days::-webkit-scrollbar { display: none; }
-  .day {
-    flex: none;
-    width: 60px;
-    scroll-snap-align: start;
-    border: 1.5px solid var(--line);
-    background: var(--field);
-    border-radius: 14px;
-    padding: 9px 2px 10px;
-    text-align: center;
-    cursor: pointer;
-    font-family: inherit;
-    color: var(--ink);
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .day:hover { border-color: var(--ink); }
-  .day .dw { display: block; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--muted); white-space: nowrap; }
-  .day .dn { display: block; font: 800 22px/26px 'Bricolage Grotesque', 'Figtree', system-ui, sans-serif; margin: 2px 0 1px; }
-  .day .dm { display: block; font-size: 12px; line-height: 16px; color: var(--muted); }
-  .day[aria-pressed=true] { background: var(--ink); border-color: var(--ink); color: #fff; }
-  .day[aria-pressed=true] .dw, .day[aria-pressed=true] .dm { color: rgba(255, 255, 255, 0.75); }
-  .day:focus-visible, .tchip:focus-visible, .cal-day:focus-visible, .cal-nav:focus-visible {
-    outline: 3px solid rgba(47, 125, 109, 0.45); outline-offset: 2px;
-  }
-
-  .cal {
-    border: 1.5px solid var(--line);
-    border-radius: 14px;
-    padding: 10px 10px 12px;
-    margin: 0 0 14px;
-    background: var(--paper);
-  }
-  .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-  .cal-title { font: 700 16px/1.2 'Bricolage Grotesque', 'Figtree', system-ui, sans-serif; }
-  .cal-nav {
-    width: 38px; height: 38px;
-    border: 0;
-    border-radius: 50%;
-    background: var(--field);
-    color: var(--ink);
-    display: grid; place-items: center;
-    cursor: pointer;
-  }
-  .cal-nav:disabled { opacity: 0.35; cursor: default; }
-  .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; text-align: center; }
-  .cal-wd { font-size: 12px; font-weight: 600; color: var(--muted); padding: 6px 0; }
-  .cal-day {
-    height: 40px;
-    border: 0;
-    border-radius: 50%;
-    background: transparent;
-    font: 500 15px/1 'Figtree', system-ui, sans-serif;
-    color: var(--ink);
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .cal-day:hover:not(:disabled) { background: var(--field); }
-  .cal-day.today { box-shadow: inset 0 0 0 1.5px var(--teal); }
-  .cal-day[aria-pressed=true] { background: var(--ink); color: #fff; box-shadow: none; }
-  .cal-day:disabled { color: #B8C3CD; cursor: default; }
-
-  .times { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  @media (min-width: 480px) { .times { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-  .tchip {
-    border: 1.5px solid var(--line);
-    background: var(--field);
-    border-radius: 12px;
-    padding: 10px 12px;
-    text-align: left;
-    cursor: pointer;
-    font-family: inherit;
-    color: var(--ink);
-    min-height: 56px;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .tchip:hover:not(:disabled) { border-color: var(--ink); }
-  .tchip .tt { display: block; font-size: 16px; line-height: 20px; font-weight: 600; }
-  .tchip .ts { display: block; font-size: 13px; line-height: 17px; color: var(--muted); margin-top: 2px; }
-  .tchip[aria-pressed=true] { background: var(--ink); border-color: var(--ink); color: #fff; }
-  .tchip[aria-pressed=true] .ts { color: rgba(255, 255, 255, 0.75); }
-  .tchip:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  .custom-time { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
-  .custom-time select {
-    font: 600 17px/1 'Figtree', system-ui, sans-serif;
-    color: var(--ink);
-    background: var(--field);
-    border: 1.5px solid var(--line);
-    border-radius: 10px;
-    height: 48px;
-    padding: 0 12px;
-    min-width: 72px;
-    text-align: center;
-    -webkit-appearance: none;
-    appearance: none;
-    cursor: pointer;
-  }
-  .custom-time select:focus { outline: 3px solid rgba(47, 125, 109, 0.22); border-color: var(--teal); }
-  .ct-colon { font-weight: 700; font-size: 18px; color: var(--muted); }
-  .ct-ampm { flex: 1; max-width: 140px; margin-left: auto; }
-
-  .count-seg { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-  #repeatLabel { margin-top: 18px; }
-  #gapBox { margin-top: 14px; }
-  .gap-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .gap-chips button {
-    font: 500 14px/1 'Figtree', system-ui, sans-serif;
+  .quick { display: flex; flex-wrap: wrap; gap: 8px; }
+  .qchip {
+    font: 600 15px/1 'Figtree', system-ui, sans-serif;
     color: var(--ink);
     background: var(--field);
     border: 1.5px solid var(--line);
     border-radius: 999px;
-    padding: 0 14px;
-    min-height: 38px;
+    padding: 0 16px;
+    min-height: 44px;
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s, color 0.15s;
+    -webkit-tap-highlight-color: transparent;
   }
-  .gap-chips button:hover { border-color: var(--ink); }
-  .gap-chips button[aria-pressed=true] { background: var(--ink); border-color: var(--ink); color: #fff; }
-  .gap-chips button:focus-visible { outline: 3px solid rgba(47, 125, 109, 0.45); outline-offset: 2px; }
-
-  .when-summary {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 14px 0 18px;
-    padding: 12px 14px;
+  .qchip:hover { border-color: var(--ink); }
+  .qchip[aria-pressed=true] { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .qchip:focus-visible { outline: 3px solid rgba(47, 125, 109, 0.45); outline-offset: 2px; }
+  .pick { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 10px; margin-top: 12px; }
+  .pick-field {
+    display: block;
+    margin: 0;
+    background: var(--field);
+    border: 1.5px solid var(--line);
     border-radius: 12px;
-    background: var(--teal-soft);
+    padding: 8px 12px 6px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .pick-field:focus-within { border-color: var(--teal); background: var(--paper); outline: 3px solid rgba(47, 125, 109, 0.22); }
+  .pick-field span { display: block; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--muted); }
+  .pick-field input {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    min-height: 30px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    outline: none !important;
+    background: transparent !important;
+    font: 600 17px/1.3 'Figtree', system-ui, sans-serif !important;
     color: var(--ink);
   }
-  .when-summary .ws-icon { flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--paper); color: var(--teal); display: grid; place-items: center; }
-  .when-summary .ws-text { display: block; min-width: 0; }
-  .when-summary .ws-main { display: block; font-weight: 600; font-size: 15px; line-height: 20px; }
-  .when-summary .ws-sub { display: block; font-size: 13px; line-height: 18px; color: var(--muted); margin-top: 1px; }
-  .when-summary.empty { background: var(--field); }
-  .when-summary.empty .ws-icon { color: var(--muted); }
-  .when-summary.past { background: var(--err-soft); }
-  .when-summary.past .ws-icon { color: var(--err); }
+  .when-line { margin: 12px 0 0; font-size: 15px; line-height: 21px; color: var(--muted); }
+  .when-line strong { color: var(--ink); font-weight: 600; }
+  .when-line.past, .when-line.past strong { color: var(--err); }
+  .zone-line { margin: 2px 0 0; font-size: 14px; line-height: 20px; color: var(--muted); }
+  .text-btn.small { font-size: 14px; padding: 2px 0; }
+  .repeat { display: flex; flex-wrap: wrap; gap: 8px; }
+  .repeat select {
+    font: 500 16px/1 'Figtree', system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--field) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%235B6B7F' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    min-height: 48px;
+    padding: 0 36px 0 12px;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+  }
+  .repeat select:focus { outline: 3px solid rgba(47, 125, 109, 0.22); border-color: var(--teal); }
 </style>
 </head>
 <body>
@@ -628,7 +539,7 @@
     <ol class="steps">
       <li><span><strong>Write the reminder</strong>Add notes, a link or a place if it helps.</span></li>
       <li><span><strong>Choose when</strong>Set the date and time in India or Dubai time.</span></li>
-      <li><span><strong>Get the email</strong>It lands in the inbox within a few minutes of that time.</span></li>
+      <li><span><strong>Get the email</strong>It arrives right on time.</span></li>
     </ol>
   </header>
 
@@ -641,99 +552,28 @@
     <section id="viewNew">
       <form id="form" novalidate>
         <div class="field">
-          <label for="message">Remind me to</label>
-          <textarea id="message" maxlength="5000" placeholder="Wish Maa happy birthday"></textarea>
+          <label for="message">Reminder</label>
+          <textarea id="message" rows="2" maxlength="5000" placeholder="Wish Maa happy birthday"></textarea>
         </div>
 
-        <details class="more" id="more">
-          <summary><span class="plus" aria-hidden="true">+</span>Add more details <span class="sub">(optional)</span></summary>
-          <div class="more-body">
-            <div class="field">
-              <label for="subject">Email subject</label>
-              <input type="text" id="subject" maxlength="150" placeholder="Uses your reminder if left blank">
-              <p class="field-hint">The date and time are added to the subject automatically.</p>
-            </div>
-            <div class="field">
-              <label for="details">Notes</label>
-              <textarea id="details" maxlength="5000" placeholder="Anything else to remember, like what to buy or who to call"></textarea>
-            </div>
-            <div class="field">
-              <label for="place">Place</label>
-              <input type="text" id="place" maxlength="200" placeholder="Where it happens">
-            </div>
-            <div class="field">
-              <label for="link">Link</label>
-              <input type="url" id="link" maxlength="500" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://">
-            </div>
+        <div class="field when" id="whenBox" tabindex="-1">
+          <span class="group-label" id="whenLabel">When</span>
+          <div class="quick" id="quick" role="group" aria-labelledby="whenLabel"></div>
+          <div class="pick" id="pick" hidden>
+            <label class="pick-field"><span>Date</span><input type="date" id="date"></label>
+            <label class="pick-field"><span>Time</span><input type="time" id="time"></label>
           </div>
-        </details>
-
-        <div class="when" id="whenBox" tabindex="-1">
-          <fieldset>
-            <legend>Time zone</legend>
-            <div class="zones">
-              <input type="radio" name="zone" id="zIST" value="IST">
-              <label for="zIST">India (IST)</label>
-              <input type="radio" name="zone" id="zGST" value="GST">
-              <label for="zGST">Dubai (GST)</label>
-            </div>
-          </fieldset>
-
-          <div class="when-row">
-            <span class="group-label" id="dayLabel">Day</span>
-            <button type="button" class="text-btn small" id="calToggle" aria-expanded="false" aria-controls="cal">Calendar</button>
+          <p class="when-line" id="whenLine" aria-live="polite"></p>
+          <p class="zone-line"><span id="zoneText"></span> <button type="button" class="text-btn small" id="zoneSwitch"></button></p>
+          <div hidden>
+            <input type="radio" name="zone" id="zIST" value="IST">
+            <input type="radio" name="zone" id="zGST" value="GST">
           </div>
-          <div class="days" id="days" role="group" aria-labelledby="dayLabel"></div>
-
-          <div class="cal" id="cal" hidden>
-            <div class="cal-head">
-              <button type="button" class="cal-nav" id="calPrev" aria-label="Previous month">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
-              </button>
-              <span class="cal-title" id="calTitle"></span>
-              <button type="button" class="cal-nav" id="calNext" aria-label="Next month">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
-              </button>
-            </div>
-            <div class="cal-grid" id="calGrid"></div>
-          </div>
-
-          <span class="group-label" id="timeLabel">Time</span>
-          <div class="times" id="times" role="group" aria-labelledby="timeLabel"></div>
-
-          <div class="custom-time" id="customTime" hidden>
-            <select id="ctHour" aria-label="Hour"></select>
-            <span class="ct-colon">:</span>
-            <select id="ctMin" aria-label="Minutes"></select>
-            <div class="seg ct-ampm" role="group" aria-label="AM or PM">
-              <button type="button" id="ctAM" aria-selected="true">AM</button>
-              <button type="button" id="ctPM" aria-selected="false">PM</button>
-            </div>
-          </div>
-
-          <span class="group-label" id="repeatLabel">How many reminders</span>
-          <div class="seg count-seg" id="countSeg" role="group" aria-labelledby="repeatLabel"></div>
-          <div id="gapBox" hidden>
-            <span class="group-label" id="gapLabel">Time between them</span>
-            <div class="gap-chips" id="gapSeg" role="group" aria-labelledby="gapLabel"></div>
-          </div>
-
-          <div class="when-summary" id="whenSummary" aria-live="polite"></div>
-          <input type="hidden" id="date">
-          <input type="hidden" id="time">
         </div>
 
-        <hr class="divider">
-
-        <div class="row people" id="peopleRow">
-          <div class="field" id="nameField">
-            <label for="name">Your name</label>
-            <input type="text" id="name" maxlength="80" autocomplete="name">
-          </div>
-          <div class="field">
-            <label for="email">Send to</label>
-            <input type="email" id="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" placeholder="you@example.com">
-          </div>
+        <div class="field">
+          <label for="email">Send to</label>
+          <input type="email" id="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" placeholder="you@example.com">
         </div>
 
         <div class="field" id="pwField">
@@ -741,26 +581,76 @@
           <input type="password" id="password" autocomplete="off">
         </div>
 
+        <details class="more" id="more">
+          <summary><span class="plus" aria-hidden="true">+</span>More options</summary>
+          <div class="more-body">
+            <div class="field">
+              <label for="details">Notes</label>
+              <textarea id="details" rows="2" maxlength="5000" placeholder="Anything else to remember"></textarea>
+            </div>
+            <div class="row">
+              <div class="field">
+                <label for="place">Place</label>
+                <input type="text" id="place" maxlength="200" placeholder="Where it happens">
+              </div>
+              <div class="field">
+                <label for="link">Link</label>
+                <input type="url" id="link" maxlength="500" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://">
+              </div>
+            </div>
+            <div class="field">
+              <label for="repeatCount">Repeat</label>
+              <div class="repeat">
+                <select id="repeatCount">
+                  <option value="1">Send once</option>
+                  <option value="2">Send 2 times</option>
+                  <option value="3">Send 3 times</option>
+                  <option value="4">Send 4 times</option>
+                  <option value="5">Send 5 times</option>
+                </select>
+                <select id="repeatGap" aria-label="Time between reminders" hidden>
+                  <option value="3">3 minutes apart</option>
+                  <option value="5" selected>5 minutes apart</option>
+                  <option value="10">10 minutes apart</option>
+                  <option value="15">15 minutes apart</option>
+                  <option value="30">30 minutes apart</option>
+                  <option value="60">1 hour apart</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label for="subject">Email subject</label>
+              <input type="text" id="subject" maxlength="150" placeholder="Same as the reminder">
+              <p class="field-hint">The date and time are added automatically.</p>
+            </div>
+            <div class="field" id="nameField">
+              <label for="name">Your name</label>
+              <input type="text" id="name" maxlength="80" autocomplete="name">
+              <p class="field-hint">Shown in the email, so the person knows who set it.</p>
+            </div>
+          </div>
+        </details>
+
         <p class="error" id="error" role="alert"></p>
-        <button type="submit" class="primary" id="submit">Schedule reminder</button>
+        <button type="submit" class="primary" id="submit">Set reminder</button>
       </form>
 
       <div class="done" id="done" aria-live="polite">
         <div class="tick" aria-hidden="true">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
         </div>
-        <h2>Reminder scheduled</h2>
+        <h2>Reminder set</h2>
         <dl class="summary">
           <div><dt>Subject</dt><dd id="doneSubject"></dd></div>
           <div><dt>When</dt><dd id="doneWhen"></dd></div>
           <div><dt>To</dt><dd id="doneTo"></dd></div>
         </dl>
         <div class="done-actions">
-          <button type="button" class="primary" id="again">Schedule another</button>
+          <button type="button" class="primary" id="again">Set another</button>
           <button type="button" class="ghost" id="doneList" hidden>View my reminders</button>
         </div>
         <div class="nudge" id="doneNudge" hidden>
-          <p>Want to see all your reminders in one place and cancel them if plans change? Create a free account. It's optional.</p>
+          <p>Create a free account to see all your reminders in one place and cancel them if plans change.</p>
           <button type="button" class="pill-btn" id="nudgeSignUp">Create an account</button>
         </div>
       </div>
@@ -901,29 +791,25 @@
   })();
 
   function setToday() {
-    $('date').value = todayYmd();
+    $('date').value = '';
     $('time').value = '';
-    customOpen = false;
-    repeatCount = 1;
-    repeatGap = 5;
+    quickChoice = null;
+    $('pick').hidden = true;
+    $('repeatCount').value = '1';
+    $('repeatGap').value = '5';
     renderWhen();
   }
 
-  // ---------- Date and time picker ----------
-  // Works in the chosen time zone (India or Dubai), not the device's, so "today"
-  // and "already passed" are always right for where the reminder is meant for.
+  // ---------- When ----------
+  // Quick choices cover most reminders in one tap. "Pick a date and time"
+  // opens the phone's own date and time pickers, which allow any minute.
+  // Everything is worked out in the chosen time zone (India or Dubai).
 
   const ZONE_OFFSET = { IST: 330, GST: 240 };
   const ZONE_NAME = { IST: 'India time', GST: 'Dubai time' };
   const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const PRESETS = [['09:00', 'Morning'], ['13:00', 'Afternoon'], ['18:00', 'Evening'], ['21:00', 'Night']];
-  const STRIP_DAYS = 14;
-  let customOpen = false;
-  let calMonth = null;   // 'YYYY-MM' shown in the calendar
-  const GAPS = [[3, '3 min'], [5, '5 min'], [10, '10 min'], [15, '15 min'], [30, '30 min'], [60, '1 hour']];
-  let repeatCount = 1;
-  let repeatGap = 5;
+  let quickChoice = null;   // which quick choice is selected, or 'pick'
 
   function zoneKey() { const z = document.querySelector('input[name=zone]:checked'); return z ? z.value : 'IST'; }
   function zoneNow() { return new Date(Date.now() + ZONE_OFFSET[zoneKey()] * 60000); }   // read with getUTC*
@@ -931,9 +817,9 @@
   function parseYmd(s) { const [y, m, d] = s.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); }
   function todayYmd() { return ymd(zoneNow()); }
   function addDays(s, n) { const d = parseYmd(s); d.setUTCDate(d.getUTCDate() + n); return ymd(d); }
-  function maxYmd() { return addDays(todayYmd(), 364); }
   function nowMinutes() { const n = zoneNow(); return n.getUTCHours() * 60 + n.getUTCMinutes(); }
   function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+  function hm(mins) { return pad(Math.floor(mins / 60)) + ':' + pad(mins % 60); }
   function fmtTime(t) { const [h, m] = t.split(':').map(Number); return (h % 12 || 12) + ':' + pad(m) + ' ' + (h >= 12 ? 'PM' : 'AM'); }
   function isPast(date, time) {
     const today = todayYmd();
@@ -953,252 +839,127 @@
     if (hours < 24) return 'in about ' + hours + (hours === 1 ? ' hour' : ' hours');
     const days = Math.round(hours / 24);
     if (days < 14) return 'in ' + days + (days === 1 ? ' day' : ' days');
-    const weeks = Math.round(days / 7);
-    if (days < 60) return 'in ' + weeks + ' weeks';
+    if (days < 60) return 'in ' + Math.round(days / 7) + ' weeks';
     return 'in about ' + Math.round(days / 30) + ' months';
   }
-  // Next time 60+ minutes away, rounded up to 5 minutes.
-  function inAnHour() {
-    let mins = nowMinutes() + 60;
-    mins = Math.ceil(mins / 5) * 5;
-    let date = todayYmd();
-    if (mins >= 1440) { mins -= 1440; date = addDays(date, 1); }
-    return { date: date, time: pad(Math.floor(mins / 60)) + ':' + pad(mins % 60) };
+  function dayName(date) {
+    const today = todayYmd();
+    if (date === today) return 'Today';
+    if (date === addDays(today, 1)) return 'Tomorrow';
+    const d = parseYmd(date);
+    return WEEKDAYS[d.getUTCDay()] + ', ' + d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()];
+  }
+
+  // The quick choices, worked out fresh each time (they depend on the current time).
+  function quickChoices() {
+    const today = todayYmd();
+    const now = nowMinutes();
+    const list = [];
+    let soon = Math.ceil((now + 60) / 5) * 5;
+    list.push(soon < 1440
+      ? { key: 'hour', label: 'In 1 hour', date: today, time: hm(soon) }
+      : { key: 'hour', label: 'In 1 hour', date: addDays(today, 1), time: hm(soon - 1440) });
+    if (now < 17 * 60) list.push({ key: 'evening', label: 'This evening', date: today, time: '18:00' });
+    else if (now < 20 * 60) list.push({ key: 'evening', label: 'Tonight', date: today, time: '21:00' });
+    list.push({ key: 'tomorrow', label: 'Tomorrow morning', date: addDays(today, 1), time: '09:00' });
+    return list;
   }
 
   function renderWhen() {
-    const today = todayYmd();
-    if (!$('date').value || $('date').value < today) $('date').value = today;
-    renderDays();
-    renderCal();
-    renderTimes();
-    renderCustom();
-    renderRepeat();
-    renderSummary();
-  }
-
-  function renderRepeat() {
-    const cs = $('countSeg');
-    cs.innerHTML = '';
-    for (let n = 1; n <= 5; n++) {
-      const b = el('button', null, String(n));
-      b.type = 'button';
-      b.setAttribute('aria-selected', String(n === repeatCount));
-      b.setAttribute('aria-label', n === 1 ? 'One reminder' : n + ' reminders');
-      b.addEventListener('click', () => { repeatCount = n; renderWhen(); });
-      cs.appendChild(b);
-    }
-    $('gapBox').hidden = repeatCount < 2;
-    const gs = $('gapSeg');
-    gs.innerHTML = '';
-    GAPS.forEach(([g, label]) => {
-      const b = el('button', null, label);
-      b.type = 'button';
-      b.setAttribute('aria-pressed', String(g === repeatGap));
-      b.addEventListener('click', () => { repeatGap = g; renderWhen(); });
-      gs.appendChild(b);
-    });
-  }
-
-  // "9:05 and 9:10 AM" style list of the follow-up times.
-  function followUps(date, time) {
-    const out = [];
-    for (let k = 1; k < repeatCount; k++) {
-      let m = toMin(time) + k * repeatGap;
-      const nextDay = m >= 1440;
-      m %= 1440;
-      out.push(fmtTime(pad(Math.floor(m / 60)) + ':' + pad(m % 60)) + (nextDay ? ' (next day)' : ''));
-    }
-    if (out.length === 1) return out[0];
-    return out.slice(0, -1).join(', ') + ' and ' + out[out.length - 1];
-  }
-
-  function renderDays() {
-    const box = $('days');
-    const today = todayYmd();
-    const chosen = $('date').value;
+    const box = $('quick');
     box.innerHTML = '';
-    const dates = [];
-    for (let i = 0; i < STRIP_DAYS; i++) dates.push(addDays(today, i));
-    if (dates.indexOf(chosen) < 0) dates.push(chosen);   // a date picked from the calendar stays visible
-    dates.forEach((d, i) => {
-      const dt = parseYmd(d);
-      const b = el('button', 'day');
-      b.type = 'button';
-      const top = i === 0 ? 'Today' : i === 1 ? 'Tmrw' : WEEKDAYS[dt.getUTCDay()].slice(0, 3);
-      b.append(el('span', 'dw', top), el('span', 'dn', String(dt.getUTCDate())), el('span', 'dm', MONTHS[dt.getUTCMonth()].slice(0, 3)));
-      b.setAttribute('aria-pressed', String(d === chosen));
-      b.setAttribute('aria-label', WEEKDAYS[dt.getUTCDay()] + ', ' + dt.getUTCDate() + ' ' + MONTHS[dt.getUTCMonth()]);
-      b.addEventListener('click', () => pickDate(d));
-      box.appendChild(b);
-    });
-    const sel = box.querySelector('[aria-pressed=true]');
-    if (sel) {
-      const left = sel.offsetLeft - box.offsetLeft - 8;
-      if (left < box.scrollLeft || left + sel.offsetWidth > box.scrollLeft + box.clientWidth) box.scrollLeft = Math.max(0, left);
-    }
-  }
+    const choices = quickChoices();
+    // Keep a quick choice in step with the clock while the page is open.
+    const current = choices.find(c => c.key === quickChoice);
+    if (current) { $('date').value = current.date; $('time').value = current.time; }
+    else if (quickChoice && quickChoice !== 'pick') quickChoice = null;
 
-  function renderCal() {
-    const today = todayYmd();
-    const max = maxYmd();
-    if (!calMonth) calMonth = $('date').value.slice(0, 7);
-    const [y, m] = calMonth.split('-').map(Number);
-    $('calTitle').textContent = MONTHS[m - 1] + ' ' + y;
-    $('calPrev').disabled = calMonth <= today.slice(0, 7);
-    $('calNext').disabled = calMonth >= max.slice(0, 7);
-    const grid = $('calGrid');
-    grid.innerHTML = '';
-    ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(w => grid.appendChild(el('div', 'cal-wd', w)));
-    const first = new Date(Date.UTC(y, m - 1, 1));
-    for (let i = 0; i < first.getUTCDay(); i++) grid.appendChild(el('div'));
-    const daysIn = new Date(Date.UTC(y, m, 0)).getUTCDate();
-    for (let d = 1; d <= daysIn; d++) {
-      const s = y + '-' + pad(m) + '-' + pad(d);
-      const b = el('button', 'cal-day' + (s === today ? ' today' : ''), String(d));
+    choices.forEach(c => {
+      const b = el('button', 'qchip', c.label);
       b.type = 'button';
-      b.disabled = s < today || s > max;
-      b.setAttribute('aria-pressed', String(s === $('date').value));
-      b.setAttribute('aria-label', WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()] + ', ' + d + ' ' + MONTHS[m - 1]);
-      b.addEventListener('click', () => { pickDate(s); toggleCal(false); });
-      grid.appendChild(b);
-    }
-  }
-
-  function renderTimes() {
-    const box = $('times');
-    const date = $('date').value;
-    const time = $('time').value;
-    const isToday = date === todayYmd();
-    box.innerHTML = '';
-    const chip = (main, sub, pressed, disabled, onClick) => {
-      const b = el('button', 'tchip');
-      b.type = 'button';
-      b.append(el('span', 'tt', main), el('span', 'ts', sub));
-      b.setAttribute('aria-pressed', String(pressed));
-      b.disabled = disabled;
-      b.addEventListener('click', onClick);
-      box.appendChild(b);
-    };
-    if (isToday) {
-      const soon = inAnHour();
-      chip('In 1 hour', fmtTime(soon.time), !customOpen && soon.date === date && time === soon.time, false, () => {
-        customOpen = false;
-        if (soon.date !== date) $('date').value = soon.date;
-        pickTime(soon.time);
+      b.setAttribute('aria-pressed', String(quickChoice === c.key));
+      b.addEventListener('click', () => {
+        quickChoice = c.key;
+        $('pick').hidden = true;
+        clearWhenError();
+        renderWhen();
       });
-    }
-    PRESETS.forEach(([t, label]) => {
-      if (isPast(date, t)) return;   // only offer times that are still ahead
-      chip(fmtTime(t), label, !customOpen && time === t, false, () => { customOpen = false; pickTime(t); });
+      box.appendChild(b);
     });
-    const presetMatch = PRESETS.some(([t]) => t === time) || (isToday && time === inAnHour().time);
-    chip('Custom', customOpen || (time && !presetMatch) ? fmtTime(time || '09:00') : 'Any time', customOpen || (!!time && !presetMatch), false, () => {
-      customOpen = true;
-      if (!time) pickTime(defaultCustom()); else renderWhen();
-      setTimeout(() => $('ctHour').focus(), 30);
+    const pick = el('button', 'qchip', 'Pick a date and time');
+    pick.type = 'button';
+    pick.setAttribute('aria-pressed', String(quickChoice === 'pick'));
+    pick.addEventListener('click', () => {
+      quickChoice = 'pick';
+      $('pick').hidden = false;
+      // Start from something sensible: the current choice, or the next whole hour today.
+      if (!$('date').value) $('date').value = todayYmd();
+      if (!$('time').value) {
+        const next = Math.ceil((nowMinutes() + 1) / 60) * 60;
+        if (next < 1440) $('time').value = hm(next);
+        else { $('date').value = addDays(todayYmd(), 1); $('time').value = '09:00'; }
+      }
+      clearWhenError();
+      renderWhen();
     });
+    box.appendChild(pick);
+
+    $('date').min = todayYmd();
+    $('date').max = addDays(todayYmd(), 364);
+    renderWhenLine();
+    renderZone();
   }
 
-  // A sensible starting point for a custom time: the next half hour from now, or 9 AM on future days.
-  function defaultCustom() {
-    if ($('date').value !== todayYmd()) return '09:00';
-    let mins = Math.ceil((nowMinutes() + 15) / 30) * 30;
-    if (mins >= 1440) mins = 1410;
-    return pad(Math.floor(mins / 60)) + ':' + pad(mins % 60);
-  }
-
-  function renderCustom() {
-    const box = $('customTime');
-    box.hidden = !customOpen;
-    if (!customOpen) return;
-    const t = $('time').value || defaultCustom();
-    const [h, m] = t.split(':').map(Number);
-    const hs = $('ctHour'), ms = $('ctMin');
-    if (!hs.options.length) {
-      for (let i = 1; i <= 12; i++) hs.appendChild(new Option(String(i), String(i)));
-      for (let i = 0; i < 60; i += 5) ms.appendChild(new Option(pad(i), pad(i)));
-    }
-    hs.value = String(h % 12 || 12);
-    const mm = pad(Math.floor(m / 5) * 5);
-    if (![...ms.options].some(o => o.value === pad(m))) ms.value = mm; else ms.value = pad(m);
-    $('ctAM').setAttribute('aria-selected', String(h < 12));
-    $('ctPM').setAttribute('aria-selected', String(h >= 12));
-  }
-
-  function customChanged(pm) {
-    let h = Number($('ctHour').value) % 12;
-    const isPm = pm != null ? pm : $('ctPM').getAttribute('aria-selected') === 'true';
-    if (isPm) h += 12;
-    pickTime(pad(h) + ':' + $('ctMin').value);
-  }
-  $('ctHour').addEventListener('change', () => customChanged());
-  $('ctMin').addEventListener('change', () => customChanged());
-  $('ctAM').addEventListener('click', () => customChanged(false));
-  $('ctPM').addEventListener('click', () => customChanged(true));
-
-  function renderSummary() {
-    const box = $('whenSummary');
+  function renderWhenLine() {
+    const line = $('whenLine');
     const date = $('date').value;
     const time = $('time').value;
-    const icon = '<span class="ws-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5"/><path d="M5 4 2.5 6.5M19 4l2.5 2.5"/></svg></span>';
-    box.className = 'when-summary';
-    if (!time) {
-      box.classList.add('empty');
-      box.innerHTML = icon + '<span class="ws-text"><span class="ws-main">Pick a time</span><span class="ws-sub">' + ZONE_NAME[zoneKey()] + '</span></span>';
+    line.className = 'when-line';
+    if (!date || !time) { line.textContent = 'Choose when the email should arrive.'; return; }
+    const strong = el('strong', null, dayName(date) + ' at ' + fmtTime(time));
+    line.textContent = '';
+    line.appendChild(strong);
+    if (isPast(date, time)) {
+      line.classList.add('past');
+      line.appendChild(document.createTextNode('. That time has already passed.'));
       return;
     }
-    const dt = parseYmd(date);
-    const label = WEEKDAYS[dt.getUTCDay()] + ', ' + dt.getUTCDate() + ' ' + MONTHS[dt.getUTCMonth()] + ' at ' + fmtTime(time);
-    if (isPast(date, time)) {
-      box.classList.add('past');
-      box.innerHTML = icon + '<span class="ws-text"><span class="ws-main"></span><span class="ws-sub">That time has already passed. Pick a later one.</span></span>';
-    } else {
-      box.innerHTML = icon + '<span class="ws-text"><span class="ws-main"></span><span class="ws-sub"></span></span>';
-      let sub = ZONE_NAME[zoneKey()] + ', ' + relative(targetMs(date, time));
-      if (repeatCount > 1) sub += '. Then ' + followUps(date, time) + '.';
-      box.querySelector('.ws-sub').textContent = sub;
+    let rest = ', ' + relative(targetMs(date, time)) + '.';
+    const count = Number($('repeatCount').value);
+    if (count > 1) {
+      const gap = Number($('repeatGap').value);
+      const times = [];
+      for (let k = 1; k < count; k++) times.push(fmtTime(hm((toMin(time) + k * gap) % 1440)));
+      rest += ' Then ' + (times.length === 1 ? times[0] : times.slice(0, -1).join(', ') + ' and ' + times[times.length - 1]) + '.';
     }
-    box.querySelector('.ws-main').textContent = label;
+    line.appendChild(document.createTextNode(rest));
   }
 
-  function pickDate(d) {
-    $('date').value = d;
-    calMonth = d.slice(0, 7);
-    $('whenBox').removeAttribute('aria-invalid');
+  function renderZone() {
+    const z = zoneKey();
+    $('zoneText').textContent = 'Times are in ' + ZONE_NAME[z] + '.';
+    $('zoneSwitch').textContent = 'Use ' + ZONE_NAME[z === 'IST' ? 'GST' : 'IST'];
+  }
+
+  function clearWhenError() { $('whenBox').removeAttribute('aria-invalid'); }
+
+  $('zoneSwitch').addEventListener('click', () => {
+    (zoneKey() === 'IST' ? $('zGST') : $('zIST')).checked = true;
+    store.set('rd_zone', zoneKey());
     renderWhen();
-  }
-
-  function pickTime(t) {
-    $('time').value = t;
-    $('whenBox').removeAttribute('aria-invalid');
+  });
+  ['date', 'time'].forEach(id => $(id).addEventListener('input', () => {
+    quickChoice = 'pick';
+    clearWhenError();
     renderWhen();
-  }
-
-  function toggleCal(open) {
-    const cal = $('cal');
-    const show = open != null ? open : cal.hidden;
-    cal.hidden = !show;
-    $('calToggle').setAttribute('aria-expanded', String(show));
-    $('calToggle').textContent = show ? 'Hide calendar' : 'Calendar';
-    if (show) { calMonth = $('date').value.slice(0, 7); renderCal(); }
-  }
-  $('calToggle').addEventListener('click', () => toggleCal());
-  $('calPrev').addEventListener('click', () => {
-    const [y, m] = calMonth.split('-').map(Number);
-    const d = new Date(Date.UTC(y, m - 2, 1));
-    calMonth = d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1);
-    renderCal();
+  }));
+  $('repeatCount').addEventListener('change', () => {
+    $('repeatGap').hidden = $('repeatCount').value === '1';
+    renderWhenLine();
   });
-  $('calNext').addEventListener('click', () => {
-    const [y, m] = calMonth.split('-').map(Number);
-    const d = new Date(Date.UTC(y, m, 1));
-    calMonth = d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1);
-    renderCal();
-  });
-  document.querySelectorAll('input[name=zone]').forEach(r => r.addEventListener('change', renderWhen));
-  // Keep "In 1 hour" and "already passed" honest while the page stays open.
-  setInterval(() => { if (!$('viewNew').hidden && $('form').style.display !== 'none') renderWhen(); }, 60000);
+  $('repeatGap').addEventListener('change', renderWhenLine);
+  // Keep "in 5 minutes" and "already passed" honest while the page stays open.
+  setInterval(() => { if (!$('viewNew').hidden && $('form').style.display !== 'none') renderWhen(); }, 30000);
   setToday();
 
   // ---------- Account state ----------
@@ -1225,7 +986,6 @@
     $('tabs').hidden = !inNow;
     $('nameField').hidden = inNow;
     $('pwField').hidden = inNow;
-    $('peopleRow').style.gridTemplateColumns = inNow ? '1fr' : '';
     if (inNow) {
       $('acctName').textContent = user.name;
       if (!$('email').value) $('email').value = user.email;
@@ -1274,18 +1034,35 @@
     (scope || document).querySelectorAll('[aria-invalid]').forEach(el => el.removeAttribute('aria-invalid'));
   }
 
-  document.querySelectorAll('input, textarea').forEach(el =>
-    el.addEventListener('input', () => el.removeAttribute('aria-invalid'))
+  // As soon as someone starts fixing things, the old error message goes away.
+  document.querySelectorAll('input, textarea, select').forEach(el =>
+    el.addEventListener('input', () => {
+      el.removeAttribute('aria-invalid');
+      const box = el.closest('form') ? el.closest('form').querySelector('.error') : null;
+      if (box && box.classList.contains('show')) { box.classList.remove('show'); box.textContent = ''; }
+    })
   );
+  document.addEventListener('click', e => {
+    if (e.target.closest && e.target.closest('.qchip') && $('error').classList.contains('show')) {
+      $('error').classList.remove('show'); $('error').textContent = '';
+    }
+  });
 
   $('form').addEventListener('submit', e => {
     e.preventDefault();
     clearErrors($('form'));
 
-    const labels = { message: 'the reminder', date: 'a day', time: 'a time', name: 'your name', email: 'an email address', password: 'the access password' };
-    const required = user ? ['message', 'date', 'time', 'email'] : ['message', 'date', 'time', 'name', 'email', 'password'];
+    const messages = {
+      message: 'Write the reminder first.',
+      date: 'Choose when the email should arrive.',
+      time: 'Choose when the email should arrive.',
+      email: 'Add the email address to send it to.',
+      password: 'Enter the access password.'
+    };
+    const required = user ? ['message', 'date', 'time', 'email'] : ['message', 'date', 'time', 'email', 'password'];
     const missing = required.find(id => !$(id).value.trim());
-    if (missing) return showError('Add ' + labels[missing] + '.', missing);
+    if (missing) return showError(messages[missing], missing);
+    if (isPast($('date').value, $('time').value)) return showError('That time has already passed. Choose a later one.', 'time');
 
     const zone = document.querySelector('input[name=zone]:checked');
     const data = {
@@ -1297,8 +1074,8 @@
       date: $('date').value,
       time: $('time').value,
       zone: zone ? zone.value : '',
-      count: repeatCount,
-      gap: repeatGap,
+      count: Number($('repeatCount').value),
+      gap: Number($('repeatGap').value),
       name: user ? '' : $('name').value,
       email: $('email').value,
       password: user ? '' : $('password').value
@@ -1306,7 +1083,7 @@
     store.set('rd_zone', data.zone);
 
     const btn = $('submit');
-    busy(btn, true, 'Scheduling...');
+    busy(btn, true, 'Setting reminder...');
     call('scheduleReminder', data, token || '')
       .then(res => {
         busy(btn, false);
@@ -1327,6 +1104,7 @@
         if (/password/i.test(msg)) field = 'password';
         else if (/email/i.test(msg)) field = 'email';
         else if (/link/i.test(msg)) { field = 'link'; $('more').open = true; }
+        else if (/name/i.test(msg)) { field = 'name'; $('more').open = true; }
         else if (/time|date|days ahead/i.test(msg)) field = 'time';
         showError(msg, field);
       });
@@ -1337,7 +1115,7 @@
     $('more').open = false;
     $('done').style.display = 'none';
     $('form').style.display = 'block';
-    toggleCal(false);
+    $('repeatGap').hidden = true;
     setToday();
   }
 
@@ -1478,6 +1256,7 @@
     $('link').value = r.link;
     $('email').value = r.to;
     $('more').open = !!($('subject').value || r.details || r.place || r.link);
+    clearErrors($('form'));
     if (r.zone === 'GST' || r.zone === 'IST') $('z' + r.zone).checked = true;
     setToday();
     showView('new');
@@ -1572,6 +1351,11 @@
   bindPane('fForgot2', ['fpCode', 'fpPass'], () =>
     call('resetPassword', { email: $('fpEmail').value, code: $('fpCode').value, password: $('fpPass').value })
       .then(res => { $('fpCode').value = ''; $('fpPass').value = ''; signedIn(res); }));
+
+  // Lets phones install the site as an app (Add to Home screen). Harmless if it fails.
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
+  }
 </script>
 </body>
 </html>
