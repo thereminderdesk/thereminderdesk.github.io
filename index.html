@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reminder Desk</title>
+<meta name="theme-color" content="#E6EDF1">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⏰</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --mist: #E6EDF1;
+    --mist-deep: #D5E0E7;
+    --paper: #FFFFFF;
+    --ink: #1F2A44;
+    --muted: #5B6B7F;
+    --line: #C9D4DC;
+    --field: #F6F9FA;
+    --teal: #2F7D6D;
+    --teal-dark: #245F53;
+    --teal-soft: #E3F0EC;
+    --err: #B3261E;
+    --err-soft: #FBEAE8;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--mist);
+    color: var(--ink);
+    font: 16px/1.5 'Figtree', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  /* ---------- Layout ---------- */
+  .page {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: calc(28px + env(safe-area-inset-top, 0px)) 14px calc(40px + env(safe-area-inset-bottom, 0px));
+  }
+  .intro { padding: 0 6px 26px; }
+  h1 {
+    font-family: 'Bricolage Grotesque', 'Figtree', system-ui, sans-serif;
+    font-weight: 800;
+    font-size: clamp(40px, 11vw, 84px);
+    line-height: 0.92;
+    letter-spacing: -0.035em;
+    margin: 0 0 12px;
+  }
+  .lede { color: var(--muted); font-size: 17px; margin: 0; max-width: 34ch; }
+
+  .steps { display: none; list-style: none; padding: 0; margin: 40px 0 0; counter-reset: step; }
+  .steps li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    gap: 14px;
+    align-items: start;
+    padding: 14px 0;
+    border-top: 1.5px solid var(--mist-deep);
+    color: var(--muted);
+    max-width: 38ch;
+  }
+  .steps li::before {
+    content: counter(step);
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    font-weight: 600;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 15px;
+  }
+  .steps strong { color: var(--ink); font-weight: 600; display: block; }
+
+  @media (min-width: 900px) {
+    .page {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 500px;
+      gap: 72px;
+      align-items: start;
+      padding: 32px 40px 80px;
+    }
+    .intro { position: sticky; top: 40px; padding: 8px 0 0; }
+    .lede { font-size: 19px; }
+    .steps { display: block; }
+  }
+
+  /* ---------- The memo slip ---------- */
+  .slip {
+    position: relative;
+    background: var(--paper);
+    border-radius: 4px 4px 18px 18px;
+    padding: 30px 18px 22px;
+    box-shadow: 0 1px 0 var(--mist-deep), 0 24px 48px -30px rgba(31, 42, 68, 0.55);
+  }
+  .slip::before {
+    content: "";
+    position: absolute;
+    left: 8px; right: 8px; top: -7px;
+    height: 14px;
+    background: radial-gradient(circle at 9px 7px, var(--mist) 5px, transparent 5.5px) 0 0 / 18px 14px repeat-x;
+  }
+  @media (min-width: 480px) { .slip { padding: 34px 28px 26px; } }
+
+  /* ---------- Fields ---------- */
+  .field { margin-bottom: 16px; }
+  label, legend, .group-title {
+    display: block;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 7px;
+    color: var(--ink);
+  }
+  .hint { font-weight: 400; color: var(--muted); }
+  input[type=text], input[type=email], input[type=password], input[type=url],
+  input[type=date], input[type=time], textarea {
+    width: 100%;
+    font: inherit;
+    font-size: 16px; /* stops iPhone zooming in on focus */
+    color: var(--ink);
+    background: var(--field);
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 13px;
+    min-height: 48px;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  input::placeholder, textarea::placeholder { color: #8C99A8; }
+  textarea { min-height: 92px; resize: vertical; line-height: 1.45; }
+  #message { min-height: 104px; font-size: 18px; }
+  input:focus, textarea:focus {
+    outline: 3px solid rgba(47, 125, 109, 0.22);
+    border-color: var(--teal);
+    background: var(--paper);
+  }
+  input[aria-invalid=true], textarea[aria-invalid=true] { border-color: var(--err); }
+
+  .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+  .row > .field { min-width: 0; }
+  input[type=date], input[type=time] { min-width: 0; max-width: 100%; display: block; }
+  @media (max-width: 479px) { .row.people { grid-template-columns: 1fr; gap: 0; } }
+  @media (max-width: 339px) { .row { grid-template-columns: 1fr; gap: 0; } }
+
+  fieldset { border: 0; padding: 0; margin: 0 0 18px; min-width: 0; }
+  .zones {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 4px;
+    background: var(--field);
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+  }
+  .zones input { position: absolute; opacity: 0; pointer-events: none; }
+  .zones label {
+    margin: 0;
+    padding: 10px 6px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 500;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .zones input:checked + label { background: var(--ink); color: #fff; }
+  .zones input:focus-visible + label { outline: 3px solid rgba(47, 125, 109, 0.45); outline-offset: 1px; }
+
+  /* ---------- More details (expandable) ---------- */
+  .more {
+    margin: 0 0 18px;
+    border: 1.5px dashed var(--line);
+    border-radius: 12px;
+    background: var(--paper);
+  }
+  .more summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 13px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    border-radius: 12px;
+  }
+  .more summary::-webkit-details-marker { display: none; }
+  .more summary:focus-visible { outline: 3px solid rgba(47, 125, 109, 0.45); outline-offset: 2px; }
+  .plus {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--teal-soft);
+    color: var(--teal);
+    display: grid; place-items: center;
+    font-size: 18px; line-height: 1;
+    transition: transform 0.2s;
+    flex: none;
+  }
+  .more[open] .plus { transform: rotate(45deg); }
+  .more .sub { font-weight: 400; color: var(--muted); font-size: 14px; }
+  .more-body { padding: 2px 14px 0; }
+
+  .divider { border: 0; border-top: 1.5px dashed var(--line); margin: 6px 0 20px; }
+  .group-title { margin-bottom: 12px; color: var(--muted); font-weight: 500; }
+
+  /* ---------- Buttons and messages ---------- */
+  button.primary {
+    width: 100%;
+    font: 600 17px/1 'Figtree', system-ui, sans-serif;
+    color: #fff;
+    background: var(--ink);
+    border: 0;
+    border-radius: 12px;
+    padding: 18px;
+    min-height: 56px;
+    cursor: pointer;
+    transition: background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button.primary:hover { background: var(--teal-dark); }
+  button.primary:focus-visible { outline: 3px solid rgba(47, 125, 109, 0.45); outline-offset: 2px; }
+  button.primary:disabled { opacity: 0.6; cursor: wait; }
+
+  .error {
+    display: none;
+    color: var(--err);
+    background: var(--err-soft);
+    font-size: 14px;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin: 0 0 14px;
+  }
+  .error.show { display: block; }
+
+  /* ---------- Success ---------- */
+  .done { display: none; }
+  .done .tick {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: var(--teal-soft);
+    color: var(--teal);
+    display: grid; place-items: center;
+    margin-bottom: 16px;
+  }
+  .done h2 {
+    font-family: 'Bricolage Grotesque', 'Figtree', system-ui, sans-serif;
+    font-weight: 800;
+    font-size: 30px;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    margin: 0 0 18px;
+  }
+  .summary { margin: 0 0 24px; padding: 0; }
+  .summary div { display: grid; grid-template-columns: 70px 1fr; gap: 10px; padding: 10px 0; border-top: 1.5px dashed var(--line); }
+  .summary dt { color: var(--muted); font-size: 14px; padding-top: 1px; }
+  .summary dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+  [hidden] { display: none !important; }
+
+  /* ---------- Top bar (account) ---------- */
+  .topbar {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    padding: 0 2px 22px;
+    min-height: 40px;
+  }
+  .acct-name { font-size: 14px; color: var(--muted); text-align: right; line-height: 1.25; overflow-wrap: anywhere; }
+  .acct-name strong { color: var(--ink); font-weight: 600; display: block; }
+  .ghost {
+    font: 600 14px/1 'Figtree', system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    padding: 0 16px;
+    min-height: 40px;
+    cursor: pointer;
+    flex: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .ghost:hover { border-color: var(--ink); }
+  .ghost:focus-visible { outline: 3px solid rgba(47, 125, 109, 0.45); outline-offset: 2px; }
+
+  /* ---------- Segmented tabs ---------- */
+  .seg {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 4px;
+    background: var(--field);
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+  }
+  .seg button {
+    font: 500 15px/1.2 'Figtree', system-ui, sans-serif;
+    color: var(--ink);
+    background: transparent;
+    border: 0;
+    border-radius: 8px;
+    padding: 10px 6px;
+    min-height: 42px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .seg button[aria-selected=true] { background: var(--ink); color: #fff; }
+  .seg button:focus-visible { outline: 3px solid rgba(47, 125, 109, 0.45); outline-offset: 1px; }
+  .seg .count { opacity: 0.7; font-size: 13px; margin-left: 4px; }
+  .tabs { margin-bottom: 24px; }
+  /* lighter style for Upcoming / Past, so it reads as a filter under the main tabs */
+  .seg.light { background: transparent; border: 0; padding: 0; gap: 0; border-bottom: 1.5px solid var(--line); border-radius: 0; }
+  .seg.light button { border-radius: 0; margin-bottom: -1.5px; border-bottom: 2.5px solid transparent; }
+  .seg.light button[aria-selected=true] { background: transparent; color: var(--ink); font-weight: 600; border-bottom-color: var(--ink); }
+  .seg.light button[aria-selected=false] { color: var(--muted); }
+
+  /* ---------- My reminders ---------- */
+  .list { list-style: none; margin: 14px 0 0; padding: 0; }
+  .item { padding: 16px 0; border-top: 1.5px dashed var(--line); }
+  .item:first-child { border-top: 0; padding-top: 8px; }
+  .item-top { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; }
+  .item-msg {
+    margin: 0;
+    font-weight: 600;
+    font-size: 16px;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .badge { flex: none; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; line-height: 1.4; }
+  .b-scheduled { background: var(--teal-soft); color: var(--teal-dark); }
+  .b-sent { background: var(--mist); color: var(--ink); }
+  .b-cancelled { background: var(--mist); color: var(--muted); }
+  .b-failed { background: var(--err-soft); color: var(--err); }
+  .item.cancelled .item-msg { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line); }
+  .item-meta { margin: 6px 0 0; font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+  .item-details {
+    margin: 6px 0 0;
+    font-size: 14px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .item-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .pill-btn {
+    font: 600 14px/1 'Figtree', system-ui, sans-serif;
+    color: var(--ink);
+    background: transparent;
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    padding: 0 14px;
+    min-height: 38px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .pill-btn:hover { border-color: var(--ink); }
+  .pill-btn:focus-visible { outline: 3px solid rgba(47, 125, 109, 0.45); outline-offset: 2px; }
+  .pill-btn.danger { color: var(--err); }
+  .pill-btn.danger:hover { border-color: var(--err); }
+  .pill-btn.danger[data-armed] { background: var(--err); border-color: var(--err); color: #fff; }
+  .pill-btn:disabled { opacity: 0.6; cursor: wait; }
+  .empty { text-align: center; color: var(--muted); padding: 34px 10px 14px; margin: 0; }
+  .empty .pill-btn { margin-top: 14px; }
+
+  /* ---------- Success extras ---------- */
+  .done-actions { display: grid; gap: 10px; }
+  .done-actions .ghost { width: 100%; min-height: 52px; font-size: 16px; border-radius: 12px; }
+  .nudge {
+    margin-top: 20px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: var(--teal-soft);
+    font-size: 14px;
+  }
+  .nudge p { margin: 0 0 10px; }
+  .nudge .pill-btn { background: var(--paper); border-color: transparent; }
+
+  /* ---------- Sign-in panel ---------- */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: rgba(31, 42, 68, 0.5);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .panel {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    max-height: 92vh;
+    overflow-y: auto;
+    background: var(--paper);
+    border-radius: 20px 20px 0 0;
+    padding: 26px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+  @media (min-width: 600px) {
+    .overlay { align-items: center; padding: 20px; }
+    .panel { border-radius: 18px; padding: 32px 28px 28px; }
+  }
+  .panel h2 {
+    font-family: 'Bricolage Grotesque', 'Figtree', system-ui, sans-serif;
+    font-weight: 800;
+    font-size: 28px;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin: 0 44px 6px 0;
+  }
+  .panel .sub { color: var(--muted); font-size: 15px; margin: 0 0 22px; }
+  .close {
+    position: absolute;
+    top: 14px; right: 14px;
+    width: 40px; height: 40px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--field);
+    color: var(--ink);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .close:focus-visible { outline: 3px solid rgba(47, 125, 109, 0.45); outline-offset: 2px; }
+  .switch { text-align: center; font-size: 14px; color: var(--muted); margin: 16px 0 0; }
+  .text-btn {
+    font: 600 14px/1.4 'Figtree', system-ui, sans-serif;
+    color: var(--teal-dark);
+    background: none;
+    border: 0;
+    padding: 6px 4px;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .text-btn:focus-visible { outline: 3px solid rgba(47, 125, 109, 0.45); border-radius: 4px; }
+  .note { font-size: 14px; color: var(--muted); margin: -6px 0 16px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="topbar">
+    <div id="acctOut">
+      <button type="button" class="ghost" id="openSignIn">Sign in</button>
+    </div>
+    <div id="acctIn" hidden style="display:flex;align-items:center;gap:12px">
+      <div class="acct-name">Signed in as<strong id="acctName"></strong></div>
+      <button type="button" class="ghost" id="signOutBtn">Sign out</button>
+    </div>
+  </div>
+
+  <header class="intro">
+    <h1>Reminder<br>Desk</h1>
+    <p class="lede">Pick a time. The email arrives then.</p>
+    <ol class="steps">
+      <li><span><strong>Write the reminder</strong>Add notes, a link or a place if it helps.</span></li>
+      <li><span><strong>Choose when</strong>Set the date and time in India or Dubai time.</span></li>
+      <li><span><strong>Get the email</strong>It lands in the inbox within a few minutes of that time.</span></li>
+    </ol>
+  </header>
+
+  <main class="slip">
+    <div class="seg tabs" id="tabs" role="tablist" hidden>
+      <button type="button" role="tab" id="tabNew" aria-selected="true">New reminder</button>
+      <button type="button" role="tab" id="tabList" aria-selected="false">My reminders</button>
+    </div>
+
+    <section id="viewNew">
+      <form id="form" novalidate>
+        <div class="field">
+          <label for="message">Remind me to</label>
+          <textarea id="message" maxlength="5000" placeholder="Wish Maa happy birthday"></textarea>
+        </div>
+
+        <details class="more" id="more">
+          <summary><span class="plus" aria-hidden="true">+</span>Add more details <span class="sub">(optional)</span></summary>
+          <div class="more-body">
+            <div class="field">
+              <label for="subject">Email subject</label>
+              <input type="text" id="subject" maxlength="150" placeholder="Reminder">
+            </div>
+            <div class="field">
+              <label for="details">Notes</label>
+              <textarea id="details" maxlength="5000" placeholder="Anything else to remember, like what to buy or who to call"></textarea>
+            </div>
+            <div class="field">
+              <label for="place">Place</label>
+              <input type="text" id="place" maxlength="200" placeholder="Where it happens">
+            </div>
+            <div class="field">
+              <label for="link">Link</label>
+              <input type="url" id="link" maxlength="500" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://">
+            </div>
+          </div>
+        </details>
+
+        <div class="row">
+          <div class="field">
+            <label for="date">Date</label>
+            <input type="date" id="date">
+          </div>
+          <div class="field">
+            <label for="time">Time</label>
+            <input type="time" id="time">
+          </div>
+        </div>
+
+        <fieldset>
+          <legend>Time zone</legend>
+          <div class="zones">
+            <input type="radio" name="zone" id="zIST" value="IST">
+            <label for="zIST">India (IST)</label>
+            <input type="radio" name="zone" id="zGST" value="GST">
+            <label for="zGST">Dubai (GST)</label>
+          </div>
+        </fieldset>
+
+        <hr class="divider">
+
+        <div class="row people" id="peopleRow">
+          <div class="field" id="nameField">
+            <label for="name">Your name</label>
+            <input type="text" id="name" maxlength="80" autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="email">Send to</label>
+            <input type="email" id="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" placeholder="you@example.com">
+          </div>
+        </div>
+
+        <div class="field" id="pwField">
+          <label for="password">Access password</label>
+          <input type="password" id="password" autocomplete="off">
+        </div>
+
+        <p class="error" id="error" role="alert"></p>
+        <button type="submit" class="primary" id="submit">Schedule reminder</button>
+      </form>
+
+      <div class="done" id="done" aria-live="polite">
+        <div class="tick" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        </div>
+        <h2>Reminder scheduled</h2>
+        <dl class="summary">
+          <div><dt>Subject</dt><dd id="doneSubject"></dd></div>
+          <div><dt>When</dt><dd id="doneWhen"></dd></div>
+          <div><dt>To</dt><dd id="doneTo"></dd></div>
+        </dl>
+        <div class="done-actions">
+          <button type="button" class="primary" id="again">Schedule another</button>
+          <button type="button" class="ghost" id="doneList" hidden>View my reminders</button>
+        </div>
+        <div class="nudge" id="doneNudge" hidden>
+          <p>Want to see all your reminders in one place and cancel them if plans change? Create a free account. It's optional.</p>
+          <button type="button" class="pill-btn" id="nudgeSignUp">Create an account</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="viewList" hidden>
+      <div class="seg light" role="tablist">
+        <button type="button" role="tab" id="segUp" aria-selected="true">Upcoming<span class="count" id="countUp"></span></button>
+        <button type="button" role="tab" id="segPast" aria-selected="false">Past<span class="count" id="countPast"></span></button>
+      </div>
+      <p class="empty" id="listStatus" hidden></p>
+      <ul class="list" id="list"></ul>
+    </section>
+  </main>
+
+</div>
+
+<!-- Sign in / create account -->
+<div class="overlay" id="auth" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <button type="button" class="close" id="authClose" aria-label="Close">&times;</button>
+
+    <form id="fSignIn" novalidate>
+      <h2 id="authTitle">Sign in</h2>
+      <p class="sub">See your upcoming and past reminders.</p>
+      <div class="field"><label for="siEmail">Email</label>
+        <input type="email" id="siEmail" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false"></div>
+      <div class="field"><label for="siPass">Password</label>
+        <input type="password" id="siPass" autocomplete="current-password"></div>
+      <p class="error" role="alert"></p>
+      <button type="submit" class="primary">Sign in</button>
+      <p class="switch"><button type="button" class="text-btn" data-go="forgot1">Forgot password?</button></p>
+      <p class="switch">New here? <button type="button" class="text-btn" data-go="signup">Create an account</button></p>
+    </form>
+
+    <form id="fSignUp" novalidate hidden>
+      <h2>Create an account</h2>
+      <p class="sub">Optional. It keeps a history of your reminders on any device.</p>
+      <div class="field"><label for="suName">Your name</label>
+        <input type="text" id="suName" maxlength="80" autocomplete="name"></div>
+      <div class="field"><label for="suEmail">Email</label>
+        <input type="email" id="suEmail" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false"></div>
+      <div class="field"><label for="suPass">Choose a password</label>
+        <input type="password" id="suPass" autocomplete="new-password" placeholder="At least 6 characters"></div>
+      <div class="field"><label for="suAccess">Access password</label>
+        <input type="password" id="suAccess" autocomplete="off"></div>
+      <p class="note">The access password is the one you got with this link.</p>
+      <p class="error" role="alert"></p>
+      <button type="submit" class="primary">Create account</button>
+      <p class="switch">Already have one? <button type="button" class="text-btn" data-go="signin">Sign in</button></p>
+    </form>
+
+    <form id="fForgot1" novalidate hidden>
+      <h2>Reset your password</h2>
+      <p class="sub">We'll email you a 6-digit code.</p>
+      <div class="field"><label for="fpEmail">Email</label>
+        <input type="email" id="fpEmail" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false"></div>
+      <p class="error" role="alert"></p>
+      <button type="submit" class="primary">Email me a code</button>
+      <p class="switch"><button type="button" class="text-btn" data-go="signin">Back to sign in</button></p>
+    </form>
+
+    <form id="fForgot2" novalidate hidden>
+      <h2>Check your email</h2>
+      <p class="sub">If <strong id="fpShown"></strong> has an account, a code is on its way. It expires in 15 minutes.</p>
+      <div class="field"><label for="fpCode">Code</label>
+        <input type="text" id="fpCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 digits"></div>
+      <div class="field"><label for="fpPass">New password</label>
+        <input type="password" id="fpPass" autocomplete="new-password" placeholder="At least 6 characters"></div>
+      <p class="error" role="alert"></p>
+      <button type="submit" class="primary">Set new password</button>
+      <p class="switch"><button type="button" class="text-btn" data-go="forgot1">Send a new code</button></p>
+    </form>
+  </div>
+</div>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const pad = n => String(n).padStart(2, '0');
+
+  // Browser storage can be blocked; everything still works without it.
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+    del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+  };
+
+  let token = store.get('rd_token');
+  let user = null;
+  let listData = { upcoming: [], past: [] };
+  let listMode = 'upcoming';
+
+  // Paste your Apps Script web app link here (Deploy, Manage deployments, copy the Web app URL).
+  const API_URL = 'https://script.google.com/macros/library/d/1b72P7Go5OFvcVbvuYXo7XuPg4W0LijySufM0G5TA1DNX8vRcfpULIIln/3';
+
+  // Talks to the Apps Script engine. No Google cookies are sent, so it works the same
+  // whether the visitor is signed into zero, one or many Google accounts.
+  async function call(fn, ...args) {
+    let res;
+    try {
+      res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ fn: fn, args: args }),
+        credentials: 'omit',
+        redirect: 'follow'
+      });
+    } catch (e) {
+      throw new Error('Could not reach Reminder Desk. Check your internet connection and try again.');
+    }
+    let data;
+    try {
+      data = await res.json();
+    } catch (e) {
+      throw new Error('Reminder Desk did not answer properly. Try again in a minute.');
+    }
+    if (!data.ok) throw new Error(data.error || 'Something went wrong. Try again.');
+    return data.result;
+  }
+
+  function busy(btn, on, label) {
+    if (on) { btn.dataset.label = btn.textContent; btn.textContent = label; btn.disabled = true; }
+    else { btn.textContent = btn.dataset.label || btn.textContent; btn.disabled = false; }
+  }
+
+  // ---------- Start ----------
+
+  (function init() {
+    const saved = store.get('rd_zone');
+    const zone = saved || (new Date().getTimezoneOffset() === -240 ? 'GST' : 'IST');
+    (zone === 'GST' ? $('zGST') : $('zIST')).checked = true;
+    setToday();
+    renderAccount();
+    if (token) {
+      call('getSession', token)
+        .then(u => { if (u) setUser(u); else forgetLocal(); })
+        .catch(() => {});
+    }
+  })();
+
+  function setToday() {
+    const t = new Date();
+    $('date').value = t.getFullYear() + '-' + pad(t.getMonth() + 1) + '-' + pad(t.getDate());
+  }
+
+  // ---------- Account state ----------
+
+  function setUser(u) {
+    user = u;
+    renderAccount();
+  }
+
+  function forgetLocal() {
+    if (user && $('email').value === user.email) $('email').value = '';
+    token = null;
+    user = null;
+    store.del('rd_token');
+    listData = { upcoming: [], past: [] };
+    renderAccount();
+    showView('new');
+  }
+
+  function renderAccount() {
+    const inNow = !!user;
+    $('acctOut').hidden = inNow;
+    $('acctIn').hidden = !inNow;
+    $('tabs').hidden = !inNow;
+    $('nameField').hidden = inNow;
+    $('pwField').hidden = inNow;
+    $('peopleRow').style.gridTemplateColumns = inNow ? '1fr' : '';
+    if (inNow) {
+      $('acctName').textContent = user.name;
+      if (!$('email').value) $('email').value = user.email;
+    }
+  }
+
+  $('signOutBtn').addEventListener('click', () => {
+    const t = token;
+    forgetLocal();
+    if (t) call('signOut', t).catch(() => {});
+  });
+
+  // ---------- Views ----------
+
+  function showView(v) {
+    const list = v === 'list';
+    $('viewNew').hidden = list;
+    $('viewList').hidden = !list;
+    $('tabNew').setAttribute('aria-selected', String(!list));
+    $('tabList').setAttribute('aria-selected', String(list));
+    if (list) loadList();
+  }
+  $('tabNew').addEventListener('click', () => showView('new'));
+  $('tabList').addEventListener('click', () => showView('list'));
+  $('doneList').addEventListener('click', () => { resetForm(); showView('list'); });
+
+  // ---------- New reminder ----------
+
+  function showError(msg, fieldId) {
+    const box = $('error');
+    box.textContent = msg;
+    box.classList.add('show');
+    if (fieldId && $(fieldId)) {
+      $(fieldId).setAttribute('aria-invalid', 'true');
+      $(fieldId).focus();
+    }
+  }
+
+  function clearErrors(scope) {
+    (scope || document).querySelectorAll('.error').forEach(el => { el.classList.remove('show'); el.textContent = ''; });
+    (scope || document).querySelectorAll('[aria-invalid]').forEach(el => el.removeAttribute('aria-invalid'));
+  }
+
+  document.querySelectorAll('input, textarea').forEach(el =>
+    el.addEventListener('input', () => el.removeAttribute('aria-invalid'))
+  );
+
+  $('form').addEventListener('submit', e => {
+    e.preventDefault();
+    clearErrors($('form'));
+
+    const labels = { message: 'the reminder', date: 'a date', time: 'a time', name: 'your name', email: 'an email address', password: 'the access password' };
+    const required = user ? ['message', 'date', 'time', 'email'] : ['message', 'date', 'time', 'name', 'email', 'password'];
+    const missing = required.find(id => !$(id).value.trim());
+    if (missing) return showError('Add ' + labels[missing] + '.', missing);
+
+    const zone = document.querySelector('input[name=zone]:checked');
+    const data = {
+      message: $('message').value,
+      subject: $('subject').value,
+      details: $('details').value,
+      place: $('place').value,
+      link: $('link').value,
+      date: $('date').value,
+      time: $('time').value,
+      zone: zone ? zone.value : '',
+      name: user ? '' : $('name').value,
+      email: $('email').value,
+      password: user ? '' : $('password').value
+    };
+    store.set('rd_zone', data.zone);
+
+    const btn = $('submit');
+    busy(btn, true, 'Scheduling...');
+    call('scheduleReminder', data, token || '')
+      .then(res => {
+        busy(btn, false);
+        $('doneSubject').textContent = res.subject;
+        $('doneWhen').textContent = res.when;
+        $('doneTo').textContent = res.to;
+        $('doneList').hidden = !res.saved;
+        $('doneNudge').hidden = res.saved;
+        $('form').style.display = 'none';
+        $('done').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      })
+      .catch(err => {
+        busy(btn, false);
+        const msg = err.message;
+        if (/sign in again/i.test(msg)) { forgetLocal(); openAuth('signin'); return; }
+        let field = null;
+        if (/password/i.test(msg)) field = 'password';
+        else if (/email/i.test(msg)) field = 'email';
+        else if (/link/i.test(msg)) { field = 'link'; $('more').open = true; }
+        else if (/time|date|days ahead/i.test(msg)) field = 'time';
+        showError(msg, field);
+      });
+  });
+
+  function resetForm() {
+    ['message', 'subject', 'details', 'place', 'link', 'time'].forEach(id => $(id).value = '');
+    $('more').open = false;
+    $('done').style.display = 'none';
+    $('form').style.display = 'block';
+  }
+
+  // Keep name, email and password for the next one; clear the reminder itself.
+  $('again').addEventListener('click', () => { resetForm(); $('message').focus(); });
+  $('nudgeSignUp').addEventListener('click', () => openAuth('signup'));
+
+  // ---------- My reminders ----------
+
+  function loadList() {
+    $('list').innerHTML = '';
+    $('listStatus').textContent = 'Loading your reminders...';
+    $('listStatus').hidden = false;
+    call('listMyReminders', token)
+      .then(d => { listData = d; renderList(); })
+      .catch(err => {
+        if (/sign in again/i.test(err.message)) { forgetLocal(); openAuth('signin'); return; }
+        $('listStatus').textContent = err.message;
+      });
+  }
+
+  function setListMode(m) {
+    listMode = m;
+    $('segUp').setAttribute('aria-selected', String(m === 'upcoming'));
+    $('segPast').setAttribute('aria-selected', String(m === 'past'));
+    renderList();
+  }
+  $('segUp').addEventListener('click', () => setListMode('upcoming'));
+  $('segPast').addEventListener('click', () => setListMode('past'));
+
+  function el(tag, cls, text) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  function renderList() {
+    $('countUp').textContent = listData.upcoming.length ? listData.upcoming.length : '';
+    $('countPast').textContent = listData.past.length ? listData.past.length : '';
+    const items = listData[listMode];
+    const list = $('list');
+    list.innerHTML = '';
+
+    if (!items.length) {
+      const status = $('listStatus');
+      status.hidden = false;
+      status.textContent = listMode === 'upcoming'
+        ? 'Nothing scheduled right now.'
+        : 'Sent and cancelled reminders will show up here.';
+      if (listMode === 'upcoming') {
+        const b = el('button', 'pill-btn', 'Write a reminder');
+        b.type = 'button';
+        b.addEventListener('click', () => showView('new'));
+        status.appendChild(document.createElement('br'));
+        status.appendChild(b);
+      }
+      return;
+    }
+    $('listStatus').hidden = true;
+    items.forEach(r => list.appendChild(itemEl(r)));
+  }
+
+  function itemEl(r) {
+    const li = el('li', 'item' + (r.status === 'Cancelled' ? ' cancelled' : ''));
+    const top = el('div', 'item-top');
+    top.append(el('p', 'item-msg', r.message), el('span', 'badge b-' + r.status.toLowerCase(), r.status));
+    li.appendChild(top);
+    li.appendChild(el('p', 'item-meta', r.when));
+    li.appendChild(el('p', 'item-meta', 'To ' + r.to));
+    if (r.details) li.appendChild(el('p', 'item-details', r.details));
+
+    const actions = el('div', 'item-actions');
+    if (r.status === 'Scheduled') {
+      const cancel = el('button', 'pill-btn danger', 'Cancel');
+      cancel.type = 'button';
+      cancel.addEventListener('click', () => cancelItem(r, cancel));
+      actions.appendChild(cancel);
+    }
+    const reuse = el('button', 'pill-btn', 'Use again');
+    reuse.type = 'button';
+    reuse.addEventListener('click', () => useAgain(r));
+    actions.appendChild(reuse);
+    li.appendChild(actions);
+    return li;
+  }
+
+  // First tap arms the button, second tap within 3 seconds cancels.
+  function cancelItem(r, btn) {
+    if (!btn.dataset.armed) {
+      btn.dataset.armed = '1';
+      btn.textContent = 'Tap again to cancel';
+      setTimeout(() => {
+        if (!btn.disabled && btn.isConnected) { delete btn.dataset.armed; btn.textContent = 'Cancel'; }
+      }, 3000);
+      return;
+    }
+    delete btn.dataset.armed;
+    btn.disabled = true;
+    btn.textContent = 'Cancelling...';
+    call('cancelReminder', token, r.id)
+      .then(() => {
+        r.status = 'Cancelled';
+        listData.upcoming = listData.upcoming.filter(x => x.id !== r.id);
+        listData.past.unshift(r);
+        renderList();
+      })
+      .catch(err => {
+        btn.disabled = false;
+        btn.textContent = 'Cancel';
+        if (/sign in again/i.test(err.message)) { forgetLocal(); openAuth('signin'); return; }
+        alertInList(err.message);
+        loadList();
+      });
+  }
+
+  function alertInList(msg) {
+    $('listStatus').hidden = false;
+    $('listStatus').textContent = msg;
+  }
+
+  function useAgain(r) {
+    resetForm();
+    $('message').value = r.message;
+    $('subject').value = r.subject === 'Reminder' ? '' : r.subject;
+    $('details').value = r.details;
+    $('place').value = r.place;
+    $('link').value = r.link;
+    $('email').value = r.to;
+    $('more').open = !!($('subject').value || r.details || r.place || r.link);
+    if (r.zone === 'GST' || r.zone === 'IST') $('z' + r.zone).checked = true;
+    showView('new');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    $('date').focus();
+  }
+
+  // ---------- Sign-in panel ----------
+
+  const panes = { signin: 'fSignIn', signup: 'fSignUp', forgot1: 'fForgot1', forgot2: 'fForgot2' };
+  let lastFocus = null;
+
+  function openAuth(mode) {
+    lastFocus = document.activeElement;
+    $('auth').hidden = false;
+    document.body.style.overflow = 'hidden';
+    goPane(mode);
+  }
+
+  function closeAuth() {
+    $('auth').hidden = true;
+    document.body.style.overflow = '';
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  function goPane(mode) {
+    Object.keys(panes).forEach(k => { $(panes[k]).hidden = k !== mode; });
+    const form = $(panes[mode]);
+    clearErrors(form);
+    const first = form.querySelector('input');
+    if (first) setTimeout(() => first.focus(), 30);
+  }
+
+  document.querySelectorAll('[data-go]').forEach(b =>
+    b.addEventListener('click', () => {
+      const go = b.dataset.go;
+      if (go === 'forgot1' && $('siEmail').value) $('fpEmail').value = $('siEmail').value;
+      goPane(go);
+    })
+  );
+  $('openSignIn').addEventListener('click', () => openAuth('signin'));
+  $('authClose').addEventListener('click', closeAuth);
+  $('auth').addEventListener('click', e => { if (e.target === $('auth')) closeAuth(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('auth').hidden) closeAuth(); });
+
+  function paneError(form, msg) {
+    const box = form.querySelector('.error');
+    box.textContent = msg;
+    box.classList.add('show');
+  }
+
+  function signedIn(res) {
+    token = res.token;
+    store.set('rd_token', token);
+    setUser(res.user);
+    closeAuth();
+    showView('list');
+  }
+
+  function bindPane(formId, needed, run) {
+    const form = $(formId);
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      clearErrors(form);
+      const missing = needed.find(id => !$(id).value.trim());
+      if (missing) {
+        $(missing).setAttribute('aria-invalid', 'true');
+        $(missing).focus();
+        return paneError(form, 'Fill in every field.');
+      }
+      const btn = form.querySelector('button[type=submit]');
+      busy(btn, true, 'Please wait...');
+      run()
+        .then(() => busy(btn, false))
+        .catch(err => { busy(btn, false); paneError(form, err.message); });
+    });
+  }
+
+  bindPane('fSignIn', ['siEmail', 'siPass'], () =>
+    call('signIn', { email: $('siEmail').value, password: $('siPass').value })
+      .then(res => { $('siPass').value = ''; signedIn(res); }));
+
+  bindPane('fSignUp', ['suName', 'suEmail', 'suPass', 'suAccess'], () =>
+    call('signUp', {
+      name: $('suName').value, email: $('suEmail').value,
+      password: $('suPass').value, accessPassword: $('suAccess').value
+    }).then(res => { $('suPass').value = ''; $('suAccess').value = ''; signedIn(res); }));
+
+  bindPane('fForgot1', ['fpEmail'], () =>
+    call('requestReset', $('fpEmail').value)
+      .then(() => { $('fpShown').textContent = $('fpEmail').value.trim(); goPane('forgot2'); }));
+
+  bindPane('fForgot2', ['fpCode', 'fpPass'], () =>
+    call('resetPassword', { email: $('fpEmail').value, code: $('fpCode').value, password: $('fpPass').value })
+      .then(res => { $('fpCode').value = ''; $('fpPass').value = ''; signedIn(res); }));
+</script>
+</body>
+</html>
