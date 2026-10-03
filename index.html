@@ -448,6 +448,165 @@
   .text-btn:focus-visible { outline: 3px solid rgba(47, 125, 109, 0.45); border-radius: 4px; }
   .note { font-size: 14px; color: var(--muted); margin: -6px 0 16px; }
   .field-hint { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+
+  /* ---------- Date and time picker ---------- */
+  .when { margin: 0 0 4px; border-radius: 14px; outline: none; }
+  .when[aria-invalid=true] { box-shadow: 0 0 0 2px var(--err); }
+  .when-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .group-label { display: block; font-weight: 600; font-size: 14px; color: var(--ink); margin-bottom: 8px; }
+  .when-row .group-label { margin-bottom: 0; }
+  .text-btn.small { font-size: 14px; padding: 4px 2px; }
+
+  .days {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 2px 2px 8px;
+    margin: 0 0 10px;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .days::-webkit-scrollbar { display: none; }
+  .day {
+    flex: none;
+    width: 60px;
+    scroll-snap-align: start;
+    border: 1.5px solid var(--line);
+    background: var(--field);
+    border-radius: 14px;
+    padding: 9px 2px 10px;
+    text-align: center;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--ink);
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .day:hover { border-color: var(--ink); }
+  .day .dw { display: block; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--muted); white-space: nowrap; }
+  .day .dn { display: block; font: 800 22px/26px 'Bricolage Grotesque', 'Figtree', system-ui, sans-serif; margin: 2px 0 1px; }
+  .day .dm { display: block; font-size: 12px; line-height: 16px; color: var(--muted); }
+  .day[aria-pressed=true] { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .day[aria-pressed=true] .dw, .day[aria-pressed=true] .dm { color: rgba(255, 255, 255, 0.75); }
+  .day:focus-visible, .tchip:focus-visible, .cal-day:focus-visible, .cal-nav:focus-visible {
+    outline: 3px solid rgba(47, 125, 109, 0.45); outline-offset: 2px;
+  }
+
+  .cal {
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    padding: 10px 10px 12px;
+    margin: 0 0 14px;
+    background: var(--paper);
+  }
+  .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .cal-title { font: 700 16px/1.2 'Bricolage Grotesque', 'Figtree', system-ui, sans-serif; }
+  .cal-nav {
+    width: 38px; height: 38px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--field);
+    color: var(--ink);
+    display: grid; place-items: center;
+    cursor: pointer;
+  }
+  .cal-nav:disabled { opacity: 0.35; cursor: default; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; text-align: center; }
+  .cal-wd { font-size: 12px; font-weight: 600; color: var(--muted); padding: 6px 0; }
+  .cal-day {
+    height: 40px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    font: 500 15px/1 'Figtree', system-ui, sans-serif;
+    color: var(--ink);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cal-day:hover:not(:disabled) { background: var(--field); }
+  .cal-day.today { box-shadow: inset 0 0 0 1.5px var(--teal); }
+  .cal-day[aria-pressed=true] { background: var(--ink); color: #fff; box-shadow: none; }
+  .cal-day:disabled { color: #B8C3CD; cursor: default; }
+
+  .times { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  @media (min-width: 480px) { .times { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .tchip {
+    border: 1.5px solid var(--line);
+    background: var(--field);
+    border-radius: 12px;
+    padding: 10px 12px;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--ink);
+    min-height: 56px;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tchip:hover:not(:disabled) { border-color: var(--ink); }
+  .tchip .tt { display: block; font-size: 16px; line-height: 20px; font-weight: 600; }
+  .tchip .ts { display: block; font-size: 13px; line-height: 17px; color: var(--muted); margin-top: 2px; }
+  .tchip[aria-pressed=true] { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .tchip[aria-pressed=true] .ts { color: rgba(255, 255, 255, 0.75); }
+  .tchip:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .custom-time { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .custom-time select {
+    font: 600 17px/1 'Figtree', system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--field);
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    height: 48px;
+    padding: 0 12px;
+    min-width: 72px;
+    text-align: center;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+  }
+  .custom-time select:focus { outline: 3px solid rgba(47, 125, 109, 0.22); border-color: var(--teal); }
+  .ct-colon { font-weight: 700; font-size: 18px; color: var(--muted); }
+  .ct-ampm { flex: 1; max-width: 140px; margin-left: auto; }
+
+  .count-seg { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  #repeatLabel { margin-top: 18px; }
+  #gapBox { margin-top: 14px; }
+  .gap-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .gap-chips button {
+    font: 500 14px/1 'Figtree', system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--field);
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    padding: 0 14px;
+    min-height: 38px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .gap-chips button:hover { border-color: var(--ink); }
+  .gap-chips button[aria-pressed=true] { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .gap-chips button:focus-visible { outline: 3px solid rgba(47, 125, 109, 0.45); outline-offset: 2px; }
+
+  .when-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 14px 0 18px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--teal-soft);
+    color: var(--ink);
+  }
+  .when-summary .ws-icon { flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--paper); color: var(--teal); display: grid; place-items: center; }
+  .when-summary .ws-text { display: block; min-width: 0; }
+  .when-summary .ws-main { display: block; font-weight: 600; font-size: 15px; line-height: 20px; }
+  .when-summary .ws-sub { display: block; font-size: 13px; line-height: 18px; color: var(--muted); margin-top: 1px; }
+  .when-summary.empty { background: var(--field); }
+  .when-summary.empty .ws-icon { color: var(--muted); }
+  .when-summary.past { background: var(--err-soft); }
+  .when-summary.past .ws-icon { color: var(--err); }
 </style>
 </head>
 <body>
@@ -509,26 +668,60 @@
           </div>
         </details>
 
-        <div class="row">
-          <div class="field">
-            <label for="date">Date</label>
-            <input type="date" id="date">
-          </div>
-          <div class="field">
-            <label for="time">Time</label>
-            <input type="time" id="time">
-          </div>
-        </div>
+        <div class="when" id="whenBox" tabindex="-1">
+          <fieldset>
+            <legend>Time zone</legend>
+            <div class="zones">
+              <input type="radio" name="zone" id="zIST" value="IST">
+              <label for="zIST">India (IST)</label>
+              <input type="radio" name="zone" id="zGST" value="GST">
+              <label for="zGST">Dubai (GST)</label>
+            </div>
+          </fieldset>
 
-        <fieldset>
-          <legend>Time zone</legend>
-          <div class="zones">
-            <input type="radio" name="zone" id="zIST" value="IST">
-            <label for="zIST">India (IST)</label>
-            <input type="radio" name="zone" id="zGST" value="GST">
-            <label for="zGST">Dubai (GST)</label>
+          <div class="when-row">
+            <span class="group-label" id="dayLabel">Day</span>
+            <button type="button" class="text-btn small" id="calToggle" aria-expanded="false" aria-controls="cal">Calendar</button>
           </div>
-        </fieldset>
+          <div class="days" id="days" role="group" aria-labelledby="dayLabel"></div>
+
+          <div class="cal" id="cal" hidden>
+            <div class="cal-head">
+              <button type="button" class="cal-nav" id="calPrev" aria-label="Previous month">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+              </button>
+              <span class="cal-title" id="calTitle"></span>
+              <button type="button" class="cal-nav" id="calNext" aria-label="Next month">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+              </button>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+          </div>
+
+          <span class="group-label" id="timeLabel">Time</span>
+          <div class="times" id="times" role="group" aria-labelledby="timeLabel"></div>
+
+          <div class="custom-time" id="customTime" hidden>
+            <select id="ctHour" aria-label="Hour"></select>
+            <span class="ct-colon">:</span>
+            <select id="ctMin" aria-label="Minutes"></select>
+            <div class="seg ct-ampm" role="group" aria-label="AM or PM">
+              <button type="button" id="ctAM" aria-selected="true">AM</button>
+              <button type="button" id="ctPM" aria-selected="false">PM</button>
+            </div>
+          </div>
+
+          <span class="group-label" id="repeatLabel">How many reminders</span>
+          <div class="seg count-seg" id="countSeg" role="group" aria-labelledby="repeatLabel"></div>
+          <div id="gapBox" hidden>
+            <span class="group-label" id="gapLabel">Time between them</span>
+            <div class="gap-chips" id="gapSeg" role="group" aria-labelledby="gapLabel"></div>
+          </div>
+
+          <div class="when-summary" id="whenSummary" aria-live="polite"></div>
+          <input type="hidden" id="date">
+          <input type="hidden" id="time">
+        </div>
 
         <hr class="divider">
 
@@ -699,7 +892,6 @@
     const saved = store.get('rd_zone');
     const zone = saved || (new Date().getTimezoneOffset() === -240 ? 'GST' : 'IST');
     (zone === 'GST' ? $('zGST') : $('zIST')).checked = true;
-    setToday();
     renderAccount();
     if (token) {
       call('getSession', token)
@@ -709,9 +901,305 @@
   })();
 
   function setToday() {
-    const t = new Date();
-    $('date').value = t.getFullYear() + '-' + pad(t.getMonth() + 1) + '-' + pad(t.getDate());
+    $('date').value = todayYmd();
+    $('time').value = '';
+    customOpen = false;
+    repeatCount = 1;
+    repeatGap = 5;
+    renderWhen();
   }
+
+  // ---------- Date and time picker ----------
+  // Works in the chosen time zone (India or Dubai), not the device's, so "today"
+  // and "already passed" are always right for where the reminder is meant for.
+
+  const ZONE_OFFSET = { IST: 330, GST: 240 };
+  const ZONE_NAME = { IST: 'India time', GST: 'Dubai time' };
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const PRESETS = [['09:00', 'Morning'], ['13:00', 'Afternoon'], ['18:00', 'Evening'], ['21:00', 'Night']];
+  const STRIP_DAYS = 14;
+  let customOpen = false;
+  let calMonth = null;   // 'YYYY-MM' shown in the calendar
+  const GAPS = [[3, '3 min'], [5, '5 min'], [10, '10 min'], [15, '15 min'], [30, '30 min'], [60, '1 hour']];
+  let repeatCount = 1;
+  let repeatGap = 5;
+
+  function zoneKey() { const z = document.querySelector('input[name=zone]:checked'); return z ? z.value : 'IST'; }
+  function zoneNow() { return new Date(Date.now() + ZONE_OFFSET[zoneKey()] * 60000); }   // read with getUTC*
+  function ymd(d) { return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()); }
+  function parseYmd(s) { const [y, m, d] = s.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); }
+  function todayYmd() { return ymd(zoneNow()); }
+  function addDays(s, n) { const d = parseYmd(s); d.setUTCDate(d.getUTCDate() + n); return ymd(d); }
+  function maxYmd() { return addDays(todayYmd(), 364); }
+  function nowMinutes() { const n = zoneNow(); return n.getUTCHours() * 60 + n.getUTCMinutes(); }
+  function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+  function fmtTime(t) { const [h, m] = t.split(':').map(Number); return (h % 12 || 12) + ':' + pad(m) + ' ' + (h >= 12 ? 'PM' : 'AM'); }
+  function isPast(date, time) {
+    const today = todayYmd();
+    if (date < today) return true;
+    if (date > today) return false;
+    return toMin(time) <= nowMinutes();
+  }
+  function targetMs(date, time) {
+    const [y, m, d] = date.split('-').map(Number);
+    const [h, mi] = time.split(':').map(Number);
+    return Date.UTC(y, m - 1, d, h, mi) - ZONE_OFFSET[zoneKey()] * 60000;
+  }
+  function relative(ms) {
+    const mins = Math.round((ms - Date.now()) / 60000);
+    if (mins < 60) return 'in ' + Math.max(mins, 1) + (mins === 1 ? ' minute' : ' minutes');
+    const hours = Math.round(mins / 60);
+    if (hours < 24) return 'in about ' + hours + (hours === 1 ? ' hour' : ' hours');
+    const days = Math.round(hours / 24);
+    if (days < 14) return 'in ' + days + (days === 1 ? ' day' : ' days');
+    const weeks = Math.round(days / 7);
+    if (days < 60) return 'in ' + weeks + ' weeks';
+    return 'in about ' + Math.round(days / 30) + ' months';
+  }
+  // Next time 60+ minutes away, rounded up to 5 minutes.
+  function inAnHour() {
+    let mins = nowMinutes() + 60;
+    mins = Math.ceil(mins / 5) * 5;
+    let date = todayYmd();
+    if (mins >= 1440) { mins -= 1440; date = addDays(date, 1); }
+    return { date: date, time: pad(Math.floor(mins / 60)) + ':' + pad(mins % 60) };
+  }
+
+  function renderWhen() {
+    const today = todayYmd();
+    if (!$('date').value || $('date').value < today) $('date').value = today;
+    renderDays();
+    renderCal();
+    renderTimes();
+    renderCustom();
+    renderRepeat();
+    renderSummary();
+  }
+
+  function renderRepeat() {
+    const cs = $('countSeg');
+    cs.innerHTML = '';
+    for (let n = 1; n <= 5; n++) {
+      const b = el('button', null, String(n));
+      b.type = 'button';
+      b.setAttribute('aria-selected', String(n === repeatCount));
+      b.setAttribute('aria-label', n === 1 ? 'One reminder' : n + ' reminders');
+      b.addEventListener('click', () => { repeatCount = n; renderWhen(); });
+      cs.appendChild(b);
+    }
+    $('gapBox').hidden = repeatCount < 2;
+    const gs = $('gapSeg');
+    gs.innerHTML = '';
+    GAPS.forEach(([g, label]) => {
+      const b = el('button', null, label);
+      b.type = 'button';
+      b.setAttribute('aria-pressed', String(g === repeatGap));
+      b.addEventListener('click', () => { repeatGap = g; renderWhen(); });
+      gs.appendChild(b);
+    });
+  }
+
+  // "9:05 and 9:10 AM" style list of the follow-up times.
+  function followUps(date, time) {
+    const out = [];
+    for (let k = 1; k < repeatCount; k++) {
+      let m = toMin(time) + k * repeatGap;
+      const nextDay = m >= 1440;
+      m %= 1440;
+      out.push(fmtTime(pad(Math.floor(m / 60)) + ':' + pad(m % 60)) + (nextDay ? ' (next day)' : ''));
+    }
+    if (out.length === 1) return out[0];
+    return out.slice(0, -1).join(', ') + ' and ' + out[out.length - 1];
+  }
+
+  function renderDays() {
+    const box = $('days');
+    const today = todayYmd();
+    const chosen = $('date').value;
+    box.innerHTML = '';
+    const dates = [];
+    for (let i = 0; i < STRIP_DAYS; i++) dates.push(addDays(today, i));
+    if (dates.indexOf(chosen) < 0) dates.push(chosen);   // a date picked from the calendar stays visible
+    dates.forEach((d, i) => {
+      const dt = parseYmd(d);
+      const b = el('button', 'day');
+      b.type = 'button';
+      const top = i === 0 ? 'Today' : i === 1 ? 'Tmrw' : WEEKDAYS[dt.getUTCDay()].slice(0, 3);
+      b.append(el('span', 'dw', top), el('span', 'dn', String(dt.getUTCDate())), el('span', 'dm', MONTHS[dt.getUTCMonth()].slice(0, 3)));
+      b.setAttribute('aria-pressed', String(d === chosen));
+      b.setAttribute('aria-label', WEEKDAYS[dt.getUTCDay()] + ', ' + dt.getUTCDate() + ' ' + MONTHS[dt.getUTCMonth()]);
+      b.addEventListener('click', () => pickDate(d));
+      box.appendChild(b);
+    });
+    const sel = box.querySelector('[aria-pressed=true]');
+    if (sel) {
+      const left = sel.offsetLeft - box.offsetLeft - 8;
+      if (left < box.scrollLeft || left + sel.offsetWidth > box.scrollLeft + box.clientWidth) box.scrollLeft = Math.max(0, left);
+    }
+  }
+
+  function renderCal() {
+    const today = todayYmd();
+    const max = maxYmd();
+    if (!calMonth) calMonth = $('date').value.slice(0, 7);
+    const [y, m] = calMonth.split('-').map(Number);
+    $('calTitle').textContent = MONTHS[m - 1] + ' ' + y;
+    $('calPrev').disabled = calMonth <= today.slice(0, 7);
+    $('calNext').disabled = calMonth >= max.slice(0, 7);
+    const grid = $('calGrid');
+    grid.innerHTML = '';
+    ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(w => grid.appendChild(el('div', 'cal-wd', w)));
+    const first = new Date(Date.UTC(y, m - 1, 1));
+    for (let i = 0; i < first.getUTCDay(); i++) grid.appendChild(el('div'));
+    const daysIn = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    for (let d = 1; d <= daysIn; d++) {
+      const s = y + '-' + pad(m) + '-' + pad(d);
+      const b = el('button', 'cal-day' + (s === today ? ' today' : ''), String(d));
+      b.type = 'button';
+      b.disabled = s < today || s > max;
+      b.setAttribute('aria-pressed', String(s === $('date').value));
+      b.setAttribute('aria-label', WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()] + ', ' + d + ' ' + MONTHS[m - 1]);
+      b.addEventListener('click', () => { pickDate(s); toggleCal(false); });
+      grid.appendChild(b);
+    }
+  }
+
+  function renderTimes() {
+    const box = $('times');
+    const date = $('date').value;
+    const time = $('time').value;
+    const isToday = date === todayYmd();
+    box.innerHTML = '';
+    const chip = (main, sub, pressed, disabled, onClick) => {
+      const b = el('button', 'tchip');
+      b.type = 'button';
+      b.append(el('span', 'tt', main), el('span', 'ts', sub));
+      b.setAttribute('aria-pressed', String(pressed));
+      b.disabled = disabled;
+      b.addEventListener('click', onClick);
+      box.appendChild(b);
+    };
+    if (isToday) {
+      const soon = inAnHour();
+      chip('In 1 hour', fmtTime(soon.time), !customOpen && soon.date === date && time === soon.time, false, () => {
+        customOpen = false;
+        if (soon.date !== date) $('date').value = soon.date;
+        pickTime(soon.time);
+      });
+    }
+    PRESETS.forEach(([t, label]) => {
+      if (isPast(date, t)) return;   // only offer times that are still ahead
+      chip(fmtTime(t), label, !customOpen && time === t, false, () => { customOpen = false; pickTime(t); });
+    });
+    const presetMatch = PRESETS.some(([t]) => t === time) || (isToday && time === inAnHour().time);
+    chip('Custom', customOpen || (time && !presetMatch) ? fmtTime(time || '09:00') : 'Any time', customOpen || (!!time && !presetMatch), false, () => {
+      customOpen = true;
+      if (!time) pickTime(defaultCustom()); else renderWhen();
+      setTimeout(() => $('ctHour').focus(), 30);
+    });
+  }
+
+  // A sensible starting point for a custom time: the next half hour from now, or 9 AM on future days.
+  function defaultCustom() {
+    if ($('date').value !== todayYmd()) return '09:00';
+    let mins = Math.ceil((nowMinutes() + 15) / 30) * 30;
+    if (mins >= 1440) mins = 1410;
+    return pad(Math.floor(mins / 60)) + ':' + pad(mins % 60);
+  }
+
+  function renderCustom() {
+    const box = $('customTime');
+    box.hidden = !customOpen;
+    if (!customOpen) return;
+    const t = $('time').value || defaultCustom();
+    const [h, m] = t.split(':').map(Number);
+    const hs = $('ctHour'), ms = $('ctMin');
+    if (!hs.options.length) {
+      for (let i = 1; i <= 12; i++) hs.appendChild(new Option(String(i), String(i)));
+      for (let i = 0; i < 60; i += 5) ms.appendChild(new Option(pad(i), pad(i)));
+    }
+    hs.value = String(h % 12 || 12);
+    const mm = pad(Math.floor(m / 5) * 5);
+    if (![...ms.options].some(o => o.value === pad(m))) ms.value = mm; else ms.value = pad(m);
+    $('ctAM').setAttribute('aria-selected', String(h < 12));
+    $('ctPM').setAttribute('aria-selected', String(h >= 12));
+  }
+
+  function customChanged(pm) {
+    let h = Number($('ctHour').value) % 12;
+    const isPm = pm != null ? pm : $('ctPM').getAttribute('aria-selected') === 'true';
+    if (isPm) h += 12;
+    pickTime(pad(h) + ':' + $('ctMin').value);
+  }
+  $('ctHour').addEventListener('change', () => customChanged());
+  $('ctMin').addEventListener('change', () => customChanged());
+  $('ctAM').addEventListener('click', () => customChanged(false));
+  $('ctPM').addEventListener('click', () => customChanged(true));
+
+  function renderSummary() {
+    const box = $('whenSummary');
+    const date = $('date').value;
+    const time = $('time').value;
+    const icon = '<span class="ws-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5"/><path d="M5 4 2.5 6.5M19 4l2.5 2.5"/></svg></span>';
+    box.className = 'when-summary';
+    if (!time) {
+      box.classList.add('empty');
+      box.innerHTML = icon + '<span class="ws-text"><span class="ws-main">Pick a time</span><span class="ws-sub">' + ZONE_NAME[zoneKey()] + '</span></span>';
+      return;
+    }
+    const dt = parseYmd(date);
+    const label = WEEKDAYS[dt.getUTCDay()] + ', ' + dt.getUTCDate() + ' ' + MONTHS[dt.getUTCMonth()] + ' at ' + fmtTime(time);
+    if (isPast(date, time)) {
+      box.classList.add('past');
+      box.innerHTML = icon + '<span class="ws-text"><span class="ws-main"></span><span class="ws-sub">That time has already passed. Pick a later one.</span></span>';
+    } else {
+      box.innerHTML = icon + '<span class="ws-text"><span class="ws-main"></span><span class="ws-sub"></span></span>';
+      let sub = ZONE_NAME[zoneKey()] + ', ' + relative(targetMs(date, time));
+      if (repeatCount > 1) sub += '. Then ' + followUps(date, time) + '.';
+      box.querySelector('.ws-sub').textContent = sub;
+    }
+    box.querySelector('.ws-main').textContent = label;
+  }
+
+  function pickDate(d) {
+    $('date').value = d;
+    calMonth = d.slice(0, 7);
+    $('whenBox').removeAttribute('aria-invalid');
+    renderWhen();
+  }
+
+  function pickTime(t) {
+    $('time').value = t;
+    $('whenBox').removeAttribute('aria-invalid');
+    renderWhen();
+  }
+
+  function toggleCal(open) {
+    const cal = $('cal');
+    const show = open != null ? open : cal.hidden;
+    cal.hidden = !show;
+    $('calToggle').setAttribute('aria-expanded', String(show));
+    $('calToggle').textContent = show ? 'Hide calendar' : 'Calendar';
+    if (show) { calMonth = $('date').value.slice(0, 7); renderCal(); }
+  }
+  $('calToggle').addEventListener('click', () => toggleCal());
+  $('calPrev').addEventListener('click', () => {
+    const [y, m] = calMonth.split('-').map(Number);
+    const d = new Date(Date.UTC(y, m - 2, 1));
+    calMonth = d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1);
+    renderCal();
+  });
+  $('calNext').addEventListener('click', () => {
+    const [y, m] = calMonth.split('-').map(Number);
+    const d = new Date(Date.UTC(y, m, 1));
+    calMonth = d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1);
+    renderCal();
+  });
+  document.querySelectorAll('input[name=zone]').forEach(r => r.addEventListener('change', renderWhen));
+  // Keep "In 1 hour" and "already passed" honest while the page stays open.
+  setInterval(() => { if (!$('viewNew').hidden && $('form').style.display !== 'none') renderWhen(); }, 60000);
+  setToday();
 
   // ---------- Account state ----------
 
@@ -770,6 +1258,11 @@
     const box = $('error');
     box.textContent = msg;
     box.classList.add('show');
+    if (fieldId === 'date' || fieldId === 'time') {
+      $('whenBox').setAttribute('aria-invalid', 'true');
+      $('whenBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
     if (fieldId && $(fieldId)) {
       $(fieldId).setAttribute('aria-invalid', 'true');
       $(fieldId).focus();
@@ -789,7 +1282,7 @@
     e.preventDefault();
     clearErrors($('form'));
 
-    const labels = { message: 'the reminder', date: 'a date', time: 'a time', name: 'your name', email: 'an email address', password: 'the access password' };
+    const labels = { message: 'the reminder', date: 'a day', time: 'a time', name: 'your name', email: 'an email address', password: 'the access password' };
     const required = user ? ['message', 'date', 'time', 'email'] : ['message', 'date', 'time', 'name', 'email', 'password'];
     const missing = required.find(id => !$(id).value.trim());
     if (missing) return showError('Add ' + labels[missing] + '.', missing);
@@ -804,6 +1297,8 @@
       date: $('date').value,
       time: $('time').value,
       zone: zone ? zone.value : '',
+      count: repeatCount,
+      gap: repeatGap,
       name: user ? '' : $('name').value,
       email: $('email').value,
       password: user ? '' : $('password').value
@@ -838,10 +1333,12 @@
   });
 
   function resetForm() {
-    ['message', 'subject', 'details', 'place', 'link', 'time'].forEach(id => $(id).value = '');
+    ['message', 'subject', 'details', 'place', 'link'].forEach(id => $(id).value = '');
     $('more').open = false;
     $('done').style.display = 'none';
     $('form').style.display = 'block';
+    toggleCal(false);
+    setToday();
   }
 
   // Keep name, email and password for the next one; clear the reminder itself.
@@ -909,7 +1406,7 @@
     const top = el('div', 'item-top');
     top.append(el('p', 'item-msg', r.message), el('span', 'badge b-' + r.status.toLowerCase(), r.status));
     li.appendChild(top);
-    li.appendChild(el('p', 'item-meta', r.when));
+    li.appendChild(el('p', 'item-meta', r.when + (r.part ? ', reminder ' + r.part : '')));
     li.appendChild(el('p', 'item-meta', 'To ' + r.to));
     if (r.details) li.appendChild(el('p', 'item-details', r.details));
 
@@ -917,8 +1414,15 @@
     if (r.status === 'Scheduled') {
       const cancel = el('button', 'pill-btn danger', 'Cancel');
       cancel.type = 'button';
-      cancel.addEventListener('click', () => cancelItem(r, cancel));
+      cancel.addEventListener('click', () => cancelItem(r, cancel, false));
       actions.appendChild(cancel);
+      const waiting = r.series ? listData.upcoming.filter(x => x.series === r.series).length : 0;
+      if (waiting > 1) {
+        const all = el('button', 'pill-btn danger', 'Cancel all ' + waiting);
+        all.type = 'button';
+        all.addEventListener('click', () => cancelItem(r, all, true));
+        actions.appendChild(all);
+      }
     }
     const reuse = el('button', 'pill-btn', 'Use again');
     reuse.type = 'button';
@@ -929,28 +1433,31 @@
   }
 
   // First tap arms the button, second tap within 3 seconds cancels.
-  function cancelItem(r, btn) {
+  function cancelItem(r, btn, all) {
+    const label = btn.textContent;
     if (!btn.dataset.armed) {
       btn.dataset.armed = '1';
       btn.textContent = 'Tap again to cancel';
       setTimeout(() => {
-        if (!btn.disabled && btn.isConnected) { delete btn.dataset.armed; btn.textContent = 'Cancel'; }
+        if (!btn.disabled && btn.isConnected) { delete btn.dataset.armed; btn.textContent = label; }
       }, 3000);
       return;
     }
+    const original = all ? 'Cancel all' : 'Cancel';
     delete btn.dataset.armed;
     btn.disabled = true;
     btn.textContent = 'Cancelling...';
-    call('cancelReminder', token, r.id)
+    call('cancelReminder', token, r.id, !!all)
       .then(() => {
-        r.status = 'Cancelled';
-        listData.upcoming = listData.upcoming.filter(x => x.id !== r.id);
-        listData.past.unshift(r);
+        const gone = all ? listData.upcoming.filter(x => x.series === r.series) : [r];
+        gone.forEach(x => { x.status = 'Cancelled'; });
+        listData.upcoming = listData.upcoming.filter(x => gone.indexOf(x) < 0);
+        listData.past = gone.concat(listData.past);
         renderList();
       })
       .catch(err => {
         btn.disabled = false;
-        btn.textContent = 'Cancel';
+        btn.textContent = original;
         if (/sign in again/i.test(err.message)) { forgetLocal(); openAuth('signin'); return; }
         alertInList(err.message);
         loadList();
@@ -972,9 +1479,9 @@
     $('email').value = r.to;
     $('more').open = !!($('subject').value || r.details || r.place || r.link);
     if (r.zone === 'GST' || r.zone === 'IST') $('z' + r.zone).checked = true;
+    setToday();
     showView('new');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    $('date').focus();
   }
 
   // ---------- Sign-in panel ----------
