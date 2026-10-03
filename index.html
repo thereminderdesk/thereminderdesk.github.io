@@ -269,6 +269,57 @@
 
   [hidden] { display: none !important; }
 
+  /* ---------- Loading ---------- */
+  .progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    width: 0;
+    z-index: 50;
+    background: var(--teal);
+    border-radius: 0 3px 3px 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .progress.on { opacity: 1; animation: rdBar 8s cubic-bezier(0.1, 0.7, 0.2, 1) forwards; }
+  .progress.done { width: 100% !important; animation: none; opacity: 0; transition: width 0.2s ease-out, opacity 0.3s ease 0.15s; }
+  @keyframes rdBar { 0% { width: 0; } 10% { width: 35%; } 100% { width: 92%; } }
+
+  .spin {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    display: inline-block;
+    vertical-align: -3px;
+    margin-right: 8px;
+    animation: rdSpin 0.7s linear infinite;
+  }
+  @keyframes rdSpin { to { transform: rotate(360deg); } }
+  button.is-busy { opacity: 1 !important; cursor: progress !important; }
+  button.primary.is-busy { background: var(--ink); }
+
+  .item.skel { pointer-events: none; }
+  .sk {
+    height: 12px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #EDF2F5 25%, #F7FAFB 50%, #EDF2F5 75%);
+    background-size: 200% 100%;
+    animation: rdShimmer 1.2s ease-in-out infinite;
+    margin-top: 10px;
+  }
+  .sk-title { height: 16px; width: 62%; margin-top: 4px; }
+  .sk-line { width: 44%; }
+  .sk-line.short { width: 30%; }
+  @keyframes rdShimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+
+  .enter { animation: rdIn 0.22s ease-out both; }
+  @keyframes rdIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .enter, .sk, .progress.on { animation: none !important; }
+    .spin { animation-duration: 1.6s; }
+  }
+
   /* ---------- Top bar (account) ---------- */
   .topbar {
     grid-column: 1 / -1;
@@ -486,7 +537,23 @@
     transition: border-color 0.15s, background 0.15s;
   }
   .pick-field:focus-within { border-color: var(--teal); background: var(--paper); outline: 3px solid rgba(47, 125, 109, 0.22); }
+  .pick-field { position: relative; -webkit-user-select: none; user-select: none; }
   .pick-field span { display: block; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--muted); }
+  .pick-field .pv { display: none; font: 600 17px/30px 'Figtree', system-ui, sans-serif; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Phones and tablets: show a clean value, and lay the real date/time input invisibly over the
+     whole box, so any tap anywhere opens the phone's own picker. Nothing gets text-selected. */
+  @media (hover: none) and (pointer: coarse) {
+    .pick-field .pv { display: block; }
+    .pick-field input {
+      position: absolute !important;
+      inset: 0;
+      width: 100%;
+      height: 100% !important;
+      opacity: 0;
+      z-index: 1;
+      cursor: pointer;
+    }
+  }
   .pick-field input {
     display: block;
     width: 100%;
@@ -521,6 +588,7 @@
 </style>
 </head>
 <body>
+<div class="progress" id="progress" aria-hidden="true"></div>
 <div class="page">
 
   <div class="topbar">
@@ -560,8 +628,8 @@
           <span class="group-label" id="whenLabel">When</span>
           <div class="quick" id="quick" role="group" aria-labelledby="whenLabel"></div>
           <div class="pick" id="pick" hidden>
-            <label class="pick-field"><span>Date</span><input type="date" id="date"></label>
-            <label class="pick-field"><span>Time</span><input type="time" id="time"></label>
+            <label class="pick-field"><span>Date</span><b class="pv" id="dateView"></b><input type="date" id="date"></label>
+            <label class="pick-field"><span>Time</span><b class="pv" id="timeView"></b><input type="time" id="time"></label>
           </div>
           <p class="when-line" id="whenLine" aria-live="polite"></p>
           <p class="zone-line"><span id="zoneText"></span> <button type="button" class="text-btn small" id="zoneSwitch"></button></p>
@@ -748,7 +816,44 @@
 
   // Talks to the Apps Script engine. No Google cookies are sent, so it works the same
   // whether the visitor is signed into zero, one or many Google accounts.
-  async function call(fn, ...args) {
+  // Every request to the server goes through here.
+  //   call(fn, ...args)       shows the thin progress bar at the top while waiting
+  //   callQuiet(fn, ...args)  background work (warm-up, refreshes): no progress bar
+  // Reads that are safe to repeat get one automatic retry if the connection blips.
+  const SAFE_TO_RETRY = { getSession: 1, listMyReminders: 1 };
+  let pending = 0;
+  let barTimer = null;
+
+  function progress(delta) {
+    pending = Math.max(0, pending + delta);
+    const bar = $('progress');
+    if (pending > 0 && !barTimer && !bar.classList.contains('on')) {
+      // Only show the bar if the wait is noticeable, so quick answers never flicker.
+      barTimer = setTimeout(() => { barTimer = null; if (pending > 0) bar.classList.add('on'); }, 150);
+    }
+    if (pending === 0) {
+      clearTimeout(barTimer); barTimer = null;
+      if (bar.classList.contains('on')) { bar.classList.add('done'); setTimeout(() => bar.classList.remove('on', 'done'), 350); }
+    }
+  }
+
+  async function request(fn, args, quiet) {
+    if (!quiet) progress(1);
+    try {
+      for (let attempt = 0; ; attempt++) {
+        try {
+          return await send(fn, args);
+        } catch (err) {
+          if (err.network && SAFE_TO_RETRY[fn] && attempt === 0) { await new Promise(r => setTimeout(r, 800)); continue; }
+          throw err;
+        }
+      }
+    } finally {
+      if (!quiet) progress(-1);
+    }
+  }
+
+  async function send(fn, args) {
     let res;
     try {
       res = await fetch(API_URL, {
@@ -759,21 +864,49 @@
         redirect: 'follow'
       });
     } catch (e) {
-      throw new Error('Could not reach Reminder Desk. Check your internet connection and try again.');
+      const err = new Error('Could not reach Reminder Desk. Check your internet connection and try again.');
+      err.network = true;
+      throw err;
     }
     let data;
     try {
       data = await res.json();
     } catch (e) {
-      throw new Error('Reminder Desk did not answer properly. Try again in a minute.');
+      const err = new Error('Reminder Desk did not answer properly. Try again in a minute.');
+      err.network = true;
+      throw err;
     }
     if (!data.ok) throw new Error(data.error || 'Something went wrong. Try again.');
     return data.result;
   }
 
+  const call = (fn, ...args) => request(fn, args, false);
+  const callQuiet = (fn, ...args) => request(fn, args, true);
+
+  // Buttons keep their size and show a small spinner while they work.
   function busy(btn, on, label) {
-    if (on) { btn.dataset.label = btn.textContent; btn.textContent = label; btn.disabled = true; }
-    else { btn.textContent = btn.dataset.label || btn.textContent; btn.disabled = false; }
+    if (on) {
+      btn.dataset.label = btn.textContent;
+      btn.style.minWidth = btn.offsetWidth + 'px';
+      btn.textContent = '';
+      btn.append(el('span', 'spin'), el('span', null, label));
+      btn.disabled = true;
+      btn.classList.add('is-busy');
+      btn.setAttribute('aria-busy', 'true');
+    } else {
+      btn.textContent = btn.dataset.label || btn.textContent;
+      btn.disabled = false;
+      btn.classList.remove('is-busy');
+      btn.removeAttribute('aria-busy');
+      btn.style.minWidth = '';
+    }
+  }
+
+  // Small entrance animation for content that appears after a wait.
+  function enter(node) {
+    node.classList.remove('enter');
+    void node.offsetWidth;
+    node.classList.add('enter');
   }
 
   // ---------- Start ----------
@@ -782,11 +915,22 @@
     const saved = store.get('rd_zone');
     const zone = saved || (new Date().getTimezoneOffset() === -240 ? 'GST' : 'IST');
     (zone === 'GST' ? $('zGST') : $('zIST')).checked = true;
+    // Someone signed in before: show their page at once from what this device remembers,
+    // then quietly confirm with the server. No waiting, no flash of the guest form.
+    let cached = null;
+    try { cached = JSON.parse(store.get('rd_user') || 'null'); } catch (e) { cached = null; }
+    if (token && cached) setUser(cached);
     renderAccount();
     if (token) {
-      call('getSession', token)
-        .then(u => { if (u) setUser(u); else forgetLocal(); })
+      callQuiet('getSession', token)
+        .then(u => {
+          if (u) { setUser(u); store.set('rd_user', JSON.stringify(u)); prefetchList(); }
+          else forgetLocal();
+        })
         .catch(() => {});
+    } else {
+      // Wakes the server up while a guest is typing, so their "Set reminder" is quick.
+      callQuiet('getSession', '').catch(() => {});
     }
   })();
 
@@ -915,6 +1059,11 @@
     const date = $('date').value;
     const time = $('time').value;
     line.className = 'when-line';
+    if (date) {
+      const d = parseYmd(date);
+      $('dateView').textContent = WEEKDAYS[d.getUTCDay()].slice(0, 3) + ', ' + d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()].slice(0, 3) + ' ' + d.getUTCFullYear();
+    } else $('dateView').textContent = 'Choose';
+    $('timeView').textContent = time ? fmtTime(time) : 'Choose';
     if (!date || !time) { line.textContent = 'Choose when the email should arrive.'; return; }
     const strong = el('strong', null, dayName(date) + ' at ' + fmtTime(time));
     line.textContent = '';
@@ -953,8 +1102,10 @@
   document.querySelectorAll('.pick-field').forEach(box => {
     let last = 0;
     box.addEventListener('click', () => {
-      // A tap on the label also fires a click on the input; only open the picker once.
-      if (Date.now() - last < 400) return;
+      // On touch screens the invisible input already catches the tap and opens the picker.
+      if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
+      // A click on the label also fires a click on the input; only open the picker once.
+      if (Date.now() - last < 150) return;
       last = Date.now();
       const input = box.querySelector('input');
       input.focus();
@@ -987,7 +1138,9 @@
     token = null;
     user = null;
     store.del('rd_token');
+    store.del('rd_user');
     listData = { upcoming: [], past: [] };
+    listLoaded = false;
     renderAccount();
     showView('new');
   }
@@ -1017,6 +1170,7 @@
     const list = v === 'list';
     $('viewNew').hidden = list;
     $('viewList').hidden = !list;
+    enter(list ? $('viewList') : $('viewNew'));
     $('tabNew').setAttribute('aria-selected', String(!list));
     $('tabList').setAttribute('aria-selected', String(list));
     if (list) loadList();
@@ -1096,7 +1250,7 @@
     store.set('rd_zone', data.zone);
 
     const btn = $('submit');
-    busy(btn, true, 'Setting reminder...');
+    busy(btn, true, 'Setting reminder');
     call('scheduleReminder', data, token || '')
       .then(res => {
         busy(btn, false);
@@ -1107,7 +1261,9 @@
         $('doneNudge').hidden = res.saved;
         $('form').style.display = 'none';
         $('done').style.display = 'block';
+        enter($('done'));
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (res.saved) prefetchList();
       })
       .catch(err => {
         busy(btn, false);
@@ -1138,16 +1294,50 @@
 
   // ---------- My reminders ----------
 
+  let listLoaded = false;
+
+  function skeleton() {
+    const list = $('list');
+    list.innerHTML = '';
+    $('listStatus').hidden = true;
+    for (let i = 0; i < 3; i++) {
+      const li = el('li', 'item skel');
+      li.setAttribute('aria-hidden', 'true');
+      li.append(el('div', 'sk sk-title'), el('div', 'sk sk-line'), el('div', 'sk sk-line short'));
+      list.appendChild(li);
+    }
+  }
+
+  // First visit: placeholder rows while loading. After that: show what we have at once
+  // and refresh quietly in the background.
   function loadList() {
-    $('list').innerHTML = '';
-    $('listStatus').textContent = 'Loading your reminders...';
-    $('listStatus').hidden = false;
-    call('listMyReminders', token)
-      .then(d => { listData = d; renderList(); })
+    if (listLoaded) renderList(); else skeleton();
+    const fetcher = listLoaded ? callQuiet : call;
+    fetcher('listMyReminders', token)
+      .then(d => {
+        const first = !listLoaded;
+        listData = d;
+        listLoaded = true;
+        renderList();
+        if (first) enter($('list'));
+      })
       .catch(err => {
         if (/sign in again/i.test(err.message)) { forgetLocal(); openAuth('signin'); return; }
-        $('listStatus').textContent = err.message;
+        if (listLoaded) return;   // keep showing what we already have
+        $('list').innerHTML = '';
+        const status = $('listStatus');
+        status.hidden = false;
+        status.textContent = err.message;
+        const retry = el('button', 'pill-btn', 'Try again');
+        retry.type = 'button';
+        retry.addEventListener('click', loadList);
+        status.append(document.createElement('br'), retry);
       });
+  }
+
+  function prefetchList() {
+    if (!token) return;
+    callQuiet('listMyReminders', token).then(d => { listData = d; listLoaded = true; if (!$('viewList').hidden) renderList(); }).catch(() => {});
   }
 
   function setListMode(m) {
@@ -1236,8 +1426,7 @@
     }
     const original = all ? 'Cancel all' : 'Cancel';
     delete btn.dataset.armed;
-    btn.disabled = true;
-    btn.textContent = 'Cancelling...';
+    busy(btn, true, 'Cancelling');
     call('cancelReminder', token, r.id, !!all)
       .then(() => {
         const gone = all ? listData.upcoming.filter(x => x.series === r.series) : [r];
@@ -1247,7 +1436,7 @@
         renderList();
       })
       .catch(err => {
-        btn.disabled = false;
+        busy(btn, false);
         btn.textContent = original;
         if (/sign in again/i.test(err.message)) { forgetLocal(); openAuth('signin'); return; }
         alertInList(err.message);
@@ -1323,6 +1512,8 @@
   function signedIn(res) {
     token = res.token;
     store.set('rd_token', token);
+    store.set('rd_user', JSON.stringify(res.user));
+    listLoaded = false;
     setUser(res.user);
     closeAuth();
     showView('list');
@@ -1340,7 +1531,8 @@
         return paneError(form, 'Fill in every field.');
       }
       const btn = form.querySelector('button[type=submit]');
-      busy(btn, true, 'Please wait...');
+      const working = { fSignIn: 'Signing in', fSignUp: 'Creating account', fForgot1: 'Sending code', fForgot2: 'Saving' };
+      busy(btn, true, working[formId] || 'Working');
       run()
         .then(() => busy(btn, false))
         .catch(err => { busy(btn, false); paneError(form, err.message); });
