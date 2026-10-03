@@ -948,6 +948,19 @@
     store.set('rd_zone', zoneKey());
     renderWhen();
   });
+  // Tapping anywhere on the Date or Time box opens its picker straight away,
+  // not only the small icon. Typing still works as normal once it is open.
+  document.querySelectorAll('.pick-field').forEach(box => {
+    let last = 0;
+    box.addEventListener('click', () => {
+      // A tap on the label also fires a click on the input; only open the picker once.
+      if (Date.now() - last < 400) return;
+      last = Date.now();
+      const input = box.querySelector('input');
+      input.focus();
+      try { if (input.showPicker) input.showPicker(); } catch (e) { /* older browsers: focus is enough */ }
+    });
+  });
   ['date', 'time'].forEach(id => $(id).addEventListener('input', () => {
     quickChoice = 'pick';
     clearWhenError();
