@@ -447,6 +447,7 @@
   }
   .text-btn:focus-visible { outline: 3px solid rgba(47, 125, 109, 0.45); border-radius: 4px; }
   .note { font-size: 14px; color: var(--muted); margin: -6px 0 16px; }
+  .field-hint { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
 </style>
 </head>
 <body>
@@ -490,7 +491,8 @@
           <div class="more-body">
             <div class="field">
               <label for="subject">Email subject</label>
-              <input type="text" id="subject" maxlength="150" placeholder="Reminder">
+              <input type="text" id="subject" maxlength="150" placeholder="Uses your reminder if left blank">
+              <p class="field-hint">The date and time are added to the subject automatically.</p>
             </div>
             <div class="field">
               <label for="details">Notes</label>
