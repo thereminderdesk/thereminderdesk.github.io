@@ -4,28 +4,28 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Reminder Desk</title>
-<meta name="theme-color" content="#EFE9DF">
+<meta name="theme-color" content="#F1F1EC">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Reminder Desk">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%232A2019'/%3E%3Cpath d='M14 19.5a8 8 0 0 1 11-6.5M50 19.5a8 8 0 0 0-11-6.5' fill='none' stroke='%239CC27A' stroke-width='4.5' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='35' r='17' fill='%23FFFDF9'/%3E%3Cpath d='M32 25v10l7 5' fill='none' stroke='%232A2019' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23141414'/%3E%3Cpath d='M14 19.5a8 8 0 0 1 11-6.5M50 19.5a8 8 0 0 0-11-6.5' fill='none' stroke='%23D4F53C' stroke-width='4.5' stroke-linecap='round'/%3E%3Ccircle cx='32' cy='35' r='17' fill='%23FFFFFF'/%3E%3Cpath d='M32 25v10l7 5' fill='none' stroke='%23141414' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --mist: #EFE9DF;
-    --mist-deep: #E2DACC;
-    --paper: #FFFDF9;
-    --ink: #2A2019;
-    --muted: #76695C;
-    --line: #DCD3C4;
-    --field: #FAF7F1;
-    --teal: #55743A;
-    --teal-dark: #42602C;
-    --teal-soft: #E6EEDA;
+    --mist: #F1F1EC;
+    --mist-deep: #E3E3DC;
+    --paper: #FFFFFF;
+    --ink: #141414;
+    --muted: #66665F;
+    --line: #D9D9D1;
+    --field: #F7F7F3;
+    --teal: #3F6212;
+    --teal-dark: #141414;
+    --teal-soft: #EEFAC4;
     --err: #B3261E;
     --err-soft: #FBEAE8;
   }
@@ -100,7 +100,7 @@
     background: var(--paper);
     border-radius: 4px 4px 18px 18px;
     padding: 30px 18px 22px;
-    box-shadow: 0 1px 0 var(--mist-deep), 0 24px 48px -30px rgba(42, 32, 25, 0.55);
+    box-shadow: 0 1px 0 var(--mist-deep), 0 24px 48px -30px rgba(20, 20, 20, 0.55);
   }
   .slip::before {
     content: "";
@@ -136,11 +136,11 @@
     appearance: none;
     transition: border-color 0.15s, background 0.15s;
   }
-  input::placeholder, textarea::placeholder { color: #A99D8F; }
+  input::placeholder, textarea::placeholder { color: #9A9A92; }
   textarea { min-height: 92px; resize: vertical; line-height: 1.45; }
   #message { min-height: 80px; font-size: 18px; }
   input:focus, textarea:focus {
-    outline: 3px solid rgba(85, 116, 58, 0.22);
+    outline: 3px solid rgba(20, 20, 20, 0.22);
     border-color: var(--teal);
     background: var(--paper);
   }
@@ -174,7 +174,7 @@
     transition: background 0.15s, color 0.15s;
   }
   .zones input:checked + label { background: var(--ink); color: #fff; }
-  .zones input:focus-visible + label { outline: 3px solid rgba(85, 116, 58, 0.45); outline-offset: 1px; }
+  .zones input:focus-visible + label { outline: 3px solid rgba(20, 20, 20, 0.45); outline-offset: 1px; }
 
   /* ---------- More details (expandable) ---------- */
   .more {
@@ -195,7 +195,7 @@
     border-radius: 12px;
   }
   .more summary::-webkit-details-marker { display: none; }
-  .more summary:focus-visible { outline: 3px solid rgba(85, 116, 58, 0.45); outline-offset: 2px; }
+  .more summary:focus-visible { outline: 3px solid rgba(20, 20, 20, 0.45); outline-offset: 2px; }
   .plus {
     width: 24px; height: 24px;
     border-radius: 50%;
@@ -228,7 +228,7 @@
     -webkit-tap-highlight-color: transparent;
   }
   button.primary:hover { background: var(--teal-dark); }
-  button.primary:focus-visible { outline: 3px solid rgba(85, 116, 58, 0.45); outline-offset: 2px; }
+  button.primary:focus-visible { outline: 3px solid rgba(20, 20, 20, 0.45); outline-offset: 2px; }
   button.primary:disabled { opacity: 0.6; cursor: wait; }
 
   .error {
@@ -268,6 +268,14 @@
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
   [hidden] { display: none !important; }
+  /* ---------- Mono + accent: the bright colour marks what is selected ---------- */
+  .qchip[aria-pressed=true], .seg:not(.light) button[aria-selected=true], .zones input:checked + label, .gap-chips button[aria-pressed=true] {
+    background: #D4F53C !important; border-color: #D4F53C !important; color: #141414 !important;
+  }
+  .seg.light button[aria-selected=true] { border-bottom-color: #141414 !important; }
+  .progress { background: #141414; }
+  .done .tick { background: #D4F53C; color: #141414; }
+
 
   /* ---------- Loading ---------- */
   .progress {
@@ -313,7 +321,7 @@
   .sk {
     height: 12px;
     border-radius: 6px;
-    background: linear-gradient(90deg, #F1EBE1 25%, #FAF7F1 50%, #F1EBE1 75%);
+    background: linear-gradient(90deg, #EFEFEA 25%, #F8F8F5 50%, #EFEFEA 75%);
     background-size: 200% 100%;
     animation: rdShimmer 1.2s ease-in-out infinite;
     margin-top: 10px;
@@ -355,7 +363,7 @@
     transition: border-color 0.15s, background 0.15s;
   }
   .ghost:hover { border-color: var(--ink); }
-  .ghost:focus-visible { outline: 3px solid rgba(85, 116, 58, 0.45); outline-offset: 2px; }
+  .ghost:focus-visible { outline: 3px solid rgba(20, 20, 20, 0.45); outline-offset: 2px; }
 
   /* ---------- Segmented tabs ---------- */
   .seg {
@@ -379,7 +387,7 @@
     transition: background 0.15s, color 0.15s;
   }
   .seg button[aria-selected=true] { background: var(--ink); color: #fff; }
-  .seg button:focus-visible { outline: 3px solid rgba(85, 116, 58, 0.45); outline-offset: 1px; }
+  .seg button:focus-visible { outline: 3px solid rgba(20, 20, 20, 0.45); outline-offset: 1px; }
   .seg .count { opacity: 0.7; font-size: 13px; margin-left: 4px; }
   .tabs { margin-bottom: 24px; }
   /* lighter style for Upcoming / Past, so it reads as a filter under the main tabs */
@@ -433,7 +441,7 @@
     transition: background 0.15s, color 0.15s, border-color 0.15s;
   }
   .pill-btn:hover { border-color: var(--ink); }
-  .pill-btn:focus-visible { outline: 3px solid rgba(85, 116, 58, 0.45); outline-offset: 2px; }
+  .pill-btn:focus-visible { outline: 3px solid rgba(20, 20, 20, 0.45); outline-offset: 2px; }
   .pill-btn.danger { color: var(--err); }
   .pill-btn.danger:hover { border-color: var(--err); }
   .pill-btn.danger[data-armed] { background: var(--err); border-color: var(--err); color: #fff; }
@@ -459,7 +467,7 @@
     position: fixed;
     inset: 0;
     z-index: 20;
-    background: rgba(42, 32, 25, 0.5);
+    background: rgba(20, 20, 20, 0.5);
     display: flex;
     align-items: flex-end;
     justify-content: center;
@@ -499,7 +507,7 @@
     line-height: 1;
     cursor: pointer;
   }
-  .close:focus-visible { outline: 3px solid rgba(85, 116, 58, 0.45); outline-offset: 2px; }
+  .close:focus-visible { outline: 3px solid rgba(20, 20, 20, 0.45); outline-offset: 2px; }
   .switch { text-align: center; font-size: 14px; color: var(--muted); margin: 16px 0 0; }
   .text-btn {
     font: 600 14px/1.4 'Figtree', system-ui, sans-serif;
@@ -511,7 +519,7 @@
     text-decoration: underline;
     text-underline-offset: 3px;
   }
-  .text-btn:focus-visible { outline: 3px solid rgba(85, 116, 58, 0.45); border-radius: 4px; }
+  .text-btn:focus-visible { outline: 3px solid rgba(20, 20, 20, 0.45); border-radius: 4px; }
   .note { font-size: 14px; color: var(--muted); margin: -6px 0 16px; }
   .field-hint { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
 
@@ -534,7 +542,7 @@
   }
   .qchip:hover { border-color: var(--ink); }
   .qchip[aria-pressed=true] { background: var(--ink); border-color: var(--ink); color: #fff; }
-  .qchip:focus-visible { outline: 3px solid rgba(85, 116, 58, 0.45); outline-offset: 2px; }
+  .qchip:focus-visible { outline: 3px solid rgba(20, 20, 20, 0.45); outline-offset: 2px; }
   .pick { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 10px; margin-top: 12px; }
   .pick-field {
     display: block;
@@ -546,7 +554,7 @@
     cursor: pointer;
     transition: border-color 0.15s, background 0.15s;
   }
-  .pick-field:focus-within, .pick-field:focus-visible { border-color: var(--teal); background: var(--paper); outline: 3px solid rgba(85, 116, 58, 0.22); }
+  .pick-field:focus-within, .pick-field:focus-visible { border-color: var(--teal); background: var(--paper); outline: 3px solid rgba(20, 20, 20, 0.22); }
   .pick-field:active { background: var(--paper); }
   .pick-field { position: relative; -webkit-user-select: none; user-select: none; }
   .pick-field span { display: block; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--muted); }
@@ -588,7 +596,7 @@
   .repeat select {
     font: 500 16px/1 'Figtree', system-ui, sans-serif;
     color: var(--ink);
-    background: var(--field) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%2376695C' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center;
+    background: var(--field) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%2366665F' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center;
     border: 1.5px solid var(--line);
     border-radius: 10px;
     min-height: 48px;
@@ -597,7 +605,7 @@
     appearance: none;
     cursor: pointer;
   }
-  .repeat select:focus { outline: 3px solid rgba(85, 116, 58, 0.22); border-color: var(--teal); }
+  .repeat select:focus { outline: 3px solid rgba(20, 20, 20, 0.22); border-color: var(--teal); }
 </style>
 </head>
 <body>
