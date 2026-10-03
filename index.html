@@ -300,6 +300,16 @@
   button.primary.is-busy { background: var(--ink); }
 
   .item.skel { pointer-events: none; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  .restoring .sk { margin-top: 0; }
+  .restoring .sk-tabs { height: 50px; border-radius: 12px; margin-bottom: 26px !important; }
+  .restoring .sk-label { width: 90px; height: 12px; margin-bottom: 10px !important; }
+  .restoring .sk-box { height: 80px; border-radius: 10px; margin-bottom: 22px !important; }
+  .restoring .sk-chips { display: flex; gap: 8px; margin-bottom: 22px; }
+  .restoring .sk-chip { width: 90px; height: 44px; border-radius: 999px; }
+  .restoring .sk-chip.wide { width: 150px; }
+  .restoring .sk-field { height: 48px; border-radius: 10px; margin-bottom: 26px !important; }
+  .restoring .sk-button { height: 56px; border-radius: 12px; }
   .sk {
     height: 12px;
     border-radius: 6px;
@@ -592,7 +602,7 @@
 <div class="page">
 
   <div class="topbar">
-    <div id="acctOut">
+    <div id="acctOut" hidden>
       <button type="button" class="ghost" id="openSignIn">Sign in</button>
     </div>
     <div id="acctIn" hidden style="display:flex;align-items:center;gap:12px">
@@ -612,6 +622,17 @@
   </header>
 
   <main class="slip">
+    <div class="restoring" id="restoring" hidden aria-live="polite">
+      <span class="sr-only">Opening your reminders</span>
+      <div class="sk sk-tabs" aria-hidden="true"></div>
+      <div class="sk sk-label" aria-hidden="true"></div>
+      <div class="sk sk-box" aria-hidden="true"></div>
+      <div class="sk sk-label" aria-hidden="true"></div>
+      <div class="sk-chips" aria-hidden="true"><div class="sk sk-chip"></div><div class="sk sk-chip wide"></div><div class="sk sk-chip"></div></div>
+      <div class="sk sk-label" aria-hidden="true"></div>
+      <div class="sk sk-field" aria-hidden="true"></div>
+      <div class="sk sk-button" aria-hidden="true"></div>
+    </div>
     <div class="seg tabs" id="tabs" role="tablist" hidden>
       <button type="button" role="tab" id="tabNew" aria-selected="true">New reminder</button>
       <button type="button" role="tab" id="tabList" aria-selected="false">My reminders</button>
@@ -915,24 +936,52 @@
     const saved = store.get('rd_zone');
     const zone = saved || (new Date().getTimezoneOffset() === -240 ? 'GST' : 'IST');
     (zone === 'GST' ? $('zGST') : $('zIST')).checked = true;
-    // Someone signed in before: show their page at once from what this device remembers,
-    // then quietly confirm with the server. No waiting, no flash of the guest form.
+    // How opening works, like any well-made app:
+    //   - Signed in before on this device: their page shows at once, from what the device
+    //     remembers, and the server confirms quietly in the background.
+    //   - Signed in, but this device has not saved their details yet: a calm placeholder of
+    //     the page shows while we check. The guest form and "Sign in" never flash up first.
+    //   - Not signed in: the normal page shows at once.
     let cached = null;
     try { cached = JSON.parse(store.get('rd_user') || 'null'); } catch (e) { cached = null; }
     if (token && cached) setUser(cached);
-    renderAccount();
+    if (token && !cached) setRestoring(true);
+    else renderAccount();
+
     if (token) {
-      callQuiet('getSession', token)
-        .then(u => {
-          if (u) { setUser(u); store.set('rd_user', JSON.stringify(u)); prefetchList(); }
-          else forgetLocal();
-        })
-        .catch(() => {});
+      verifySession(cached);
     } else {
       // Wakes the server up while a guest is typing, so their "Set reminder" is quick.
       callQuiet('getSession', '').catch(() => {});
     }
   })();
+
+  function setRestoring(on) {
+    $('restoring').hidden = !on;
+    $('viewNew').hidden = on;
+    if (on) { $('tabs').hidden = true; $('acctOut').hidden = true; $('acctIn').hidden = true; }
+  }
+
+  function verifySession(cached, attempt) {
+    callQuiet('getSession', token)
+      .then(u => {
+        if (u) {
+          store.set('rd_user', JSON.stringify(u));
+          setUser(u);
+          prefetchList();
+        } else {
+          forgetLocal();   // signed out elsewhere, or the sign-in expired
+        }
+        if (!$('restoring').hidden) { setRestoring(false); renderAccount(); enter($('viewNew')); }
+      })
+      .catch(() => {
+        if (cached) return;   // their page is already showing; nothing to change
+        // No connection: try once more, then show the page without waiting any longer.
+        if (!attempt) { setTimeout(() => verifySession(cached, 1), 3000); return; }
+        setRestoring(false);
+        renderAccount();
+      });
+  }
 
   function setToday() {
     $('date').value = '';
