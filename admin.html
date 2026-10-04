@@ -641,7 +641,20 @@
           call('adminSaveSettings', { signOutOtherAdmins: true }).then(() => { toast('Other sessions signed out'); show('settings'); }).catch(e => { if (token) toast(e.message); }); });
         admin.appendChild(b);
       }
-      render(v, [access, g, pw, admin]);
+      const fam = el('div', 'card');
+      fam.appendChild(el('h2', null, 'Family list'));
+      fam.appendChild(el('p', 'sub', 'Reminder Desk only sends emails to these addresses (plus anyone who already has an account), and only these addresses can create accounts. This keeps the Gmail account from ever emailing strangers.'));
+      const ff = el('div', 'field'); const fl = el('label', null, 'Email addresses, one per line'); fl.htmlFor = 'fam';
+      const ft = el('textarea', 'input'); ft.id = 'fam'; ft.rows = 6; ft.value = (s.approved || []).join('\n');
+      ft.autocapitalize = 'off'; ft.spellcheck = false; ft.style.minHeight = '140px';
+      ff.append(fl, ft);
+      const fs = el('button', 'btn primary', 'Save family list'); fs.type = 'button'; fs.style.marginTop = '10px';
+      fs.addEventListener('click', () => { fs.disabled = true;
+        call('adminSaveSettings', { approved: ft.value }).then(r => { ft.value = r.approved.join('\n'); toast('Family list saved'); })
+          .catch(e => { if (token) toast(e.message); }).finally(() => { fs.disabled = false; }); });
+      fam.append(ff, fs, el('p', 'hint', 'Up to ' + s.dailyLimit + ' reminders can be scheduled for any one day, to stay well inside Gmail\'s 100-emails-a-day limit.'));
+
+      render(v, [fam, access, g, pw, admin]);
     }).catch(e => { if (token) render(v, [errorCard(e.message, () => show('settings'))]); });
   }
 
