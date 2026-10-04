@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Reminder Desk</title>
-<meta name="theme-color" content="#F1F1EC">
+<meta name="theme-color" content="#F4F4F1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E0E0D" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -15,19 +16,53 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+  /* Colours. One set for light mode, one for dark mode; everything else uses these. */
   :root {
-    --mist: #F1F1EC;
-    --mist-deep: #E3E3DC;
-    --paper: #FFFFFF;
-    --ink: #141414;
-    --muted: #66665F;
-    --line: #D9D9D1;
-    --field: #F7F7F3;
-    --teal: #3F6212;
+    color-scheme: light dark;
+    --mist: #F4F4F1;          /* page */
+    --mist-deep: #E7E7E2;
+    --paper: #FFFFFF;         /* cards */
+    --ink: #141414;           /* text and main buttons */
+    --on-ink: #FFFFFF;        /* text on main buttons */
+    --muted: #6B6B64;
+    --line: #E3E3DD;
+    --field: #F7F7F4;         /* inputs */
+    --ph: #9A9A92;            /* placeholder text */
+    --teal: #3F6212;          /* links */
     --teal-dark: #141414;
     --teal-soft: #EEFAC4;
+    --lime: #D4F53C;          /* selected items */
+    --on-lime: #141414;
+    --sk1: #EFEFEA;
+    --sk2: #F8F8F5;
+    --focus: rgba(20, 20, 20, 0.35);
+    --focus-soft: rgba(20, 20, 20, 0.14);
+    --card-shadow: 0 1px 2px rgba(20, 20, 20, 0.04), 0 12px 32px -18px rgba(20, 20, 20, 0.18);
     --err: #B3261E;
     --err-soft: #FBEAE8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --mist: #0E0E0D;
+      --mist-deep: #232321;
+      --paper: #171716;
+      --ink: #F2F2EE;
+      --on-ink: #141414;
+      --muted: #A3A39C;
+      --line: #2D2D2A;
+      --field: #1F1F1D;
+      --ph: #6F6F68;
+      --teal: #C9EC5A;
+      --teal-dark: #F2F2EE;
+      --teal-soft: #2A3311;
+      --sk1: #1F1F1D;
+      --sk2: #272725;
+      --card-shadow: 0 0 0 1px #232321;
+      --focus: rgba(242, 242, 238, 0.5);
+      --focus-soft: rgba(242, 242, 238, 0.18);
+      --err: #FF8A80;
+      --err-soft: #3A1715;
+    }
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -45,16 +80,17 @@
     margin: 0 auto;
     padding: calc(28px + env(safe-area-inset-top, 0px)) 14px calc(40px + env(safe-area-inset-bottom, 0px));
   }
-  .intro { padding: 0 6px 26px; }
+  .intro { padding: 0 6px 20px; }
   h1 {
     font-family: 'Bricolage Grotesque', 'Figtree', system-ui, sans-serif;
     font-weight: 800;
-    font-size: clamp(40px, 11vw, 84px);
-    line-height: 0.92;
-    letter-spacing: -0.035em;
-    margin: 0 0 12px;
+    font-size: clamp(30px, 8.4vw, 84px);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin: 0 0 6px;
   }
-  .lede { color: var(--muted); font-size: 17px; margin: 0; max-width: 34ch; }
+  h1 .wide { display: none; }
+  .lede { color: var(--muted); font-size: 15px; margin: 0; max-width: 34ch; }
 
   .steps { display: none; list-style: none; padding: 0; margin: 40px 0 0; counter-reset: step; }
   .steps li {
@@ -90,6 +126,8 @@
       padding: 32px 40px 80px;
     }
     .intro { position: sticky; top: 40px; padding: 8px 0 0; }
+    h1 { line-height: 0.92; margin-bottom: 12px; }
+    h1 .wide { display: inline; }
     .lede { font-size: 19px; }
     .steps { display: block; }
   }
@@ -100,7 +138,7 @@
     background: var(--paper);
     border-radius: 4px 4px 18px 18px;
     padding: 30px 18px 22px;
-    box-shadow: 0 1px 0 var(--mist-deep), 0 24px 48px -30px rgba(20, 20, 20, 0.55);
+    box-shadow: var(--card-shadow);
   }
   .slip::before {
     content: "";
@@ -136,11 +174,11 @@
     appearance: none;
     transition: border-color 0.15s, background 0.15s;
   }
-  input::placeholder, textarea::placeholder { color: #9A9A92; }
+  input::placeholder, textarea::placeholder { color: var(--ph); }
   textarea { min-height: 92px; resize: vertical; line-height: 1.45; }
   #message { min-height: 80px; font-size: 18px; }
   input:focus, textarea:focus {
-    outline: 3px solid rgba(20, 20, 20, 0.22);
+    outline: 3px solid var(--focus-soft);
     border-color: var(--teal);
     background: var(--paper);
   }
@@ -173,8 +211,8 @@
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
   }
-  .zones input:checked + label { background: var(--ink); color: #fff; }
-  .zones input:focus-visible + label { outline: 3px solid rgba(20, 20, 20, 0.45); outline-offset: 1px; }
+  .zones input:checked + label { background: var(--ink); color: var(--on-ink); }
+  .zones input:focus-visible + label { outline: 3px solid var(--focus); outline-offset: 1px; }
 
   /* ---------- More details (expandable) ---------- */
   .more {
@@ -195,7 +233,7 @@
     border-radius: 12px;
   }
   .more summary::-webkit-details-marker { display: none; }
-  .more summary:focus-visible { outline: 3px solid rgba(20, 20, 20, 0.45); outline-offset: 2px; }
+  .more summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
   .plus {
     width: 24px; height: 24px;
     border-radius: 50%;
@@ -217,7 +255,7 @@
   button.primary {
     width: 100%;
     font: 600 17px/1 'Figtree', system-ui, sans-serif;
-    color: #fff;
+    color: var(--on-ink);
     background: var(--ink);
     border: 0;
     border-radius: 12px;
@@ -228,7 +266,7 @@
     -webkit-tap-highlight-color: transparent;
   }
   button.primary:hover { background: var(--teal-dark); }
-  button.primary:focus-visible { outline: 3px solid rgba(20, 20, 20, 0.45); outline-offset: 2px; }
+  button.primary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
   button.primary:disabled { opacity: 0.6; cursor: wait; }
 
   .error {
@@ -270,11 +308,11 @@
   [hidden] { display: none !important; }
   /* ---------- Mono + accent: the bright colour marks what is selected ---------- */
   .qchip[aria-pressed=true], .seg:not(.light) button[aria-selected=true], .zones input:checked + label, .gap-chips button[aria-pressed=true] {
-    background: #D4F53C !important; border-color: #D4F53C !important; color: #141414 !important;
+    background: var(--lime) !important; border-color: var(--lime) !important; color: var(--on-lime) !important;
   }
-  .seg.light button[aria-selected=true] { border-bottom-color: #141414 !important; }
-  .progress { background: #141414; }
-  .done .tick { background: #D4F53C; color: #141414; }
+  .seg.light button[aria-selected=true] { border-bottom-color: var(--ink) !important; }
+  .progress { background: var(--ink); }
+  .done .tick { background: var(--lime); color: var(--on-lime); }
 
 
   /* ---------- Loading ---------- */
@@ -321,7 +359,7 @@
   .sk {
     height: 12px;
     border-radius: 6px;
-    background: linear-gradient(90deg, #EFEFEA 25%, #F8F8F5 50%, #EFEFEA 75%);
+    background: linear-gradient(90deg, var(--sk1) 25%, var(--sk2) 50%, var(--sk1) 75%);
     background-size: 200% 100%;
     animation: rdShimmer 1.2s ease-in-out infinite;
     margin-top: 10px;
@@ -345,7 +383,7 @@
     justify-content: flex-end;
     align-items: center;
     gap: 10px;
-    padding: 0 2px 22px;
+    padding: 0 2px 14px;
     min-height: 40px;
   }
   .acct-name { font-size: 14px; color: var(--muted); text-align: right; line-height: 1.25; overflow-wrap: anywhere; }
@@ -363,7 +401,7 @@
     transition: border-color 0.15s, background 0.15s;
   }
   .ghost:hover { border-color: var(--ink); }
-  .ghost:focus-visible { outline: 3px solid rgba(20, 20, 20, 0.45); outline-offset: 2px; }
+  .ghost:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 
   /* ---------- Segmented tabs ---------- */
   .seg {
@@ -386,8 +424,8 @@
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
   }
-  .seg button[aria-selected=true] { background: var(--ink); color: #fff; }
-  .seg button:focus-visible { outline: 3px solid rgba(20, 20, 20, 0.45); outline-offset: 1px; }
+  .seg button[aria-selected=true] { background: var(--ink); color: var(--on-ink); }
+  .seg button:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
   .seg .count { opacity: 0.7; font-size: 13px; margin-left: 4px; }
   .tabs { margin-bottom: 24px; }
   /* lighter style for Upcoming / Past, so it reads as a filter under the main tabs */
@@ -441,10 +479,10 @@
     transition: background 0.15s, color 0.15s, border-color 0.15s;
   }
   .pill-btn:hover { border-color: var(--ink); }
-  .pill-btn:focus-visible { outline: 3px solid rgba(20, 20, 20, 0.45); outline-offset: 2px; }
+  .pill-btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
   .pill-btn.danger { color: var(--err); }
   .pill-btn.danger:hover { border-color: var(--err); }
-  .pill-btn.danger[data-armed] { background: var(--err); border-color: var(--err); color: #fff; }
+  .pill-btn.danger[data-armed] { background: var(--err); border-color: var(--err); color: var(--paper); }
   .pill-btn:disabled { opacity: 0.6; cursor: wait; }
   .empty { text-align: center; color: var(--muted); padding: 34px 10px 14px; margin: 0; }
   .empty .pill-btn { margin-top: 14px; }
@@ -507,7 +545,7 @@
     line-height: 1;
     cursor: pointer;
   }
-  .close:focus-visible { outline: 3px solid rgba(20, 20, 20, 0.45); outline-offset: 2px; }
+  .close:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
   .switch { text-align: center; font-size: 14px; color: var(--muted); margin: 16px 0 0; }
   .text-btn {
     font: 600 14px/1.4 'Figtree', system-ui, sans-serif;
@@ -519,7 +557,7 @@
     text-decoration: underline;
     text-underline-offset: 3px;
   }
-  .text-btn:focus-visible { outline: 3px solid rgba(20, 20, 20, 0.45); border-radius: 4px; }
+  .text-btn:focus-visible { outline: 3px solid var(--focus); border-radius: 4px; }
   .note { font-size: 14px; color: var(--muted); margin: -6px 0 16px; }
   .field-hint { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
 
@@ -541,8 +579,8 @@
     -webkit-tap-highlight-color: transparent;
   }
   .qchip:hover { border-color: var(--ink); }
-  .qchip[aria-pressed=true] { background: var(--ink); border-color: var(--ink); color: #fff; }
-  .qchip:focus-visible { outline: 3px solid rgba(20, 20, 20, 0.45); outline-offset: 2px; }
+  .qchip[aria-pressed=true] { background: var(--ink); border-color: var(--ink); color: var(--on-ink); }
+  .qchip:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
   .pick { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 10px; margin-top: 12px; }
   .pick-field {
     display: block;
@@ -554,7 +592,7 @@
     cursor: pointer;
     transition: border-color 0.15s, background 0.15s;
   }
-  .pick-field:focus-within, .pick-field:focus-visible { border-color: var(--teal); background: var(--paper); outline: 3px solid rgba(20, 20, 20, 0.22); }
+  .pick-field:focus-within, .pick-field:focus-visible { border-color: var(--teal); background: var(--paper); outline: 3px solid var(--focus-soft); }
   .pick-field:active { background: var(--paper); }
   .pick-field { position: relative; -webkit-user-select: none; user-select: none; }
   .pick-field span { display: block; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--muted); }
@@ -604,7 +642,7 @@
     appearance: none;
     cursor: pointer;
   }
-  .repeat select:focus { outline: 3px solid rgba(20, 20, 20, 0.22); border-color: var(--teal); }
+  .repeat select:focus { outline: 3px solid var(--focus-soft); border-color: var(--teal); }
 </style>
 </head>
 <body>
@@ -622,7 +660,7 @@
   </div>
 
   <header class="intro">
-    <h1>Reminder<br>Desk</h1>
+    <h1>Reminder<br class="wide"> Desk</h1>
     <p class="lede">Schedule email reminders in seconds.</p>
     <ol class="steps">
       <li><span><strong>Write your reminder</strong>Add notes, a location or a link if needed.</span></li>
