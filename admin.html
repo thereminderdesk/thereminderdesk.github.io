@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Reminder Desk Admin Console</title>
+<meta name="theme-color" content="#F4F4F1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E0E0D" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<!--
+  Reminder Desk Admin Console.
+  This page holds no data and makes no decisions about access. Everything it shows comes
+  from the server, and the server checks the admin session on every single request.
+  Without a valid session (created by the two-step admin sign-in on the main page),
+  every request is refused and this page only shows "Sign in required".
+-->
+<style>
+  :root {
+    color-scheme: light dark;
+    --page: #F4F4F1; --card: #FFFFFF; --ink: #141414; --on-ink: #FFFFFF; --muted: #6B6B64;
+    --line: #E3E3DD; --field: #F7F7F4; --ph: #9A9A92; --link: #3F6212; --lime: #D4F53C; --on-lime: #141414;
+    --ok: #2F6B1E; --ok-soft: #EAF6DD; --warn: #8A5A00; --warn-soft: #FFF3D6; --err: #B3261E; --err-soft: #FBEAE8;
+    --focus: rgba(20, 20, 20, 0.35); --shadow: 0 1px 2px rgba(20, 20, 20, 0.04), 0 12px 32px -18px rgba(20, 20, 20, 0.18);
+    --sk1: #EFEFEA; --sk2: #F8F8F5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page: #0E0E0D; --card: #171716; --ink: #F2F2EE; --on-ink: #141414; --muted: #A3A39C;
+      --line: #2D2D2A; --field: #1F1F1D; --ph: #6F6F68; --link: #C9EC5A;
+      --ok: #A7DC7A; --ok-soft: #1E2A14; --warn: #F2C46B; --warn-soft: #2E2410; --err: #FF8A80; --err-soft: #3A1715;
+      --focus: rgba(242, 242, 238, 0.5); --shadow: 0 0 0 1px #232321; --sk1: #1F1F1D; --sk2: #272725;
+    }
+  }
+  [hidden] { display: none !important; }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; min-height: 100vh; background: var(--page); color: var(--ink);
+    font: 15px/1.5 'Figtree', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+  .progress { position: fixed; top: 0; left: 0; height: 3px; width: 0; z-index: 60; background: var(--ink); opacity: 0; pointer-events: none; }
+  .progress.on { opacity: 1; animation: bar 8s cubic-bezier(0.1, 0.7, 0.2, 1) forwards; }
+  @keyframes bar { 0% { width: 0; } 10% { width: 35%; } 100% { width: 92%; } }
+
+  .wrap { max-width: 1040px; margin: 0 auto; padding: calc(14px + env(safe-area-inset-top, 0px)) 14px calc(48px + env(safe-area-inset-bottom, 0px)); }
+  .head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 2px 14px; }
+  .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .brand img { width: 30px; height: 30px; border-radius: 8px; flex: none; }
+  .brand b { font: 800 19px/1 'Bricolage Grotesque', 'Figtree', sans-serif; letter-spacing: -0.02em; white-space: nowrap; }
+  .tag { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--lime); color: var(--on-lime); }
+
+  .nav { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding: 4px; background: var(--card);
+    border-radius: 14px; box-shadow: var(--shadow); margin-bottom: 16px; position: sticky; top: calc(8px + env(safe-area-inset-top, 0px)); z-index: 20; }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav button { flex: none; border: 0; background: transparent; padding: 0 14px; min-height: 40px; border-radius: 10px; font-weight: 600; font-size: 14px; color: var(--muted); cursor: pointer; }
+  .nav button[aria-selected=true] { background: var(--ink); color: var(--on-ink); }
+
+  .card { background: var(--card); border-radius: 16px; box-shadow: var(--shadow); padding: 18px 16px; margin-bottom: 14px; }
+  @media (min-width: 600px) { .card { padding: 22px 24px; } .wrap { padding-left: 24px; padding-right: 24px; } }
+  h2 { font: 800 17px/1.25 'Bricolage Grotesque', 'Figtree', sans-serif; letter-spacing: -0.01em; margin: 0 0 12px; }
+  .sub { color: var(--muted); font-size: 14px; margin: -6px 0 14px; }
+
+  .stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+  @media (min-width: 760px) { .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .stat { background: var(--card); border-radius: 14px; box-shadow: var(--shadow); padding: 14px 16px; }
+  .stat .n { font: 800 26px/1.1 'Bricolage Grotesque', 'Figtree', sans-serif; letter-spacing: -0.02em; }
+  .stat .l { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+  .attn { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-top: 1px solid var(--line); }
+  .attn:first-of-type { border-top: 0; padding-top: 2px; }
+  .attn .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warn); margin-top: 8px; flex: none; }
+  .attn p { margin: 0; flex: 1; }
+  .allgood { display: flex; gap: 10px; align-items: center; color: var(--ok); font-weight: 600; }
+  .allgood .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ok); }
+
+  .kv { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0; }
+  .kv div { padding: 10px 0; border-top: 1px solid var(--line); }
+  .kv div:nth-child(-n+2) { border-top: 0; padding-top: 2px; }
+  .kv .k { color: var(--muted); }
+  .kv .v { text-align: right; font-weight: 600; padding-left: 12px; }
+
+  .badge { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; line-height: 1.4; }
+  .b-ok { background: var(--ok-soft); color: var(--ok); }
+  .b-warn { background: var(--warn-soft); color: var(--warn); }
+  .b-err { background: var(--err-soft); color: var(--err); }
+  .b-mute { background: var(--field); color: var(--muted); }
+
+  .tools { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .search { flex: 1 1 220px; min-height: 44px; border: 1px solid var(--line); background: var(--field); color: var(--ink);
+    border-radius: 12px; padding: 0 14px; font: inherit; font-size: 16px; }
+  .search::placeholder { color: var(--ph); }
+  .chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: none; border: 1px solid var(--line); background: var(--card); min-height: 38px; padding: 0 14px; border-radius: 999px; font-size: 14px; font-weight: 500; cursor: pointer; }
+  .chip[aria-pressed=true] { background: var(--lime); border-color: var(--lime); color: var(--on-lime); }
+
+  .list { list-style: none; margin: 0; padding: 0; }
+  .row { display: flex; gap: 12px; align-items: center; padding: 12px 4px; border-top: 1px solid var(--line); }
+  .row:first-child { border-top: 0; }
+  button.row { width: 100%; text-align: left; background: none; border-left: 0; border-right: 0; border-bottom: 0; cursor: pointer; border-radius: 0; }
+  button.row:hover { background: var(--field); }
+  .row .main { flex: 1; min-width: 0; }
+  .row .t { font-weight: 600; overflow-wrap: anywhere; }
+  .row .m { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+  .row .side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: none; }
+  .empty { color: var(--muted); padding: 18px 4px; text-align: center; }
+
+  .btn { min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--card);
+    font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn:hover { border-color: var(--ink); }
+  .btn.primary { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+  .btn.danger { color: var(--err); }
+  .btn.danger.solid { background: var(--err); border-color: var(--err); color: var(--card); }
+  .btn:disabled { opacity: 0.55; cursor: progress; }
+  .actions { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+  .group-title { font-size: 13px; font-weight: 600; color: var(--muted); margin: 18px 0 8px; }
+
+  .toggle { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 0; border-top: 1px solid var(--line); }
+  .toggle:first-of-type { border-top: 0; padding-top: 2px; }
+  .toggle .d { color: var(--muted); font-size: 13px; }
+  .switch { position: relative; width: 50px; height: 30px; flex: none; }
+  .switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; z-index: 1; }
+  .switch span { position: absolute; inset: 0; border-radius: 999px; background: var(--line); transition: background 0.15s; }
+  .switch span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform 0.15s; box-shadow: 0 1px 2px rgba(0,0,0,.25); }
+  .switch input:checked + span { background: var(--ink); }
+  .switch input:checked + span::after { transform: translateX(20px); background: var(--lime); }
+  .switch input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+  .field { margin-top: 12px; }
+  .field label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+  .input { width: 100%; min-height: 46px; border: 1px solid var(--line); background: var(--field); color: var(--ink); border-radius: 12px; padding: 0 14px; font: inherit; font-size: 16px; }
+  textarea.input { padding: 10px 14px; min-height: 70px; resize: vertical; }
+  .hint { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
+
+  /* Sheets and dialogs */
+  .overlay { position: fixed; inset: 0; z-index: 40; background: rgba(10, 10, 10, 0.5); display: flex; align-items: flex-end; justify-content: center; }
+  .sheet { width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto; background: var(--card); border-radius: 20px 20px 0 0;
+    padding: 20px 18px calc(22px + env(safe-area-inset-bottom, 0px)); position: relative; }
+  @media (min-width: 640px) { .overlay { align-items: center; padding: 20px; } .sheet { border-radius: 18px; padding: 26px 26px 24px; } }
+  .sheet h3 { font: 800 21px/1.2 'Bricolage Grotesque', 'Figtree', sans-serif; margin: 0 44px 4px 0; overflow-wrap: anywhere; }
+  .close { position: absolute; top: 14px; right: 14px; width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--field); font-size: 22px; line-height: 1; cursor: pointer; }
+  .dialog-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; flex-wrap: wrap; }
+  .dialog-actions .btn { flex: 1 1 140px; }
+  .error { color: var(--err); background: var(--err-soft); border-radius: 10px; padding: 10px 12px; font-size: 14px; margin-top: 12px; }
+  .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 70;
+    background: var(--ink); color: var(--on-ink); padding: 12px 16px; border-radius: 12px; font-weight: 600; font-size: 14px; max-width: calc(100% - 28px); }
+
+  .gate { max-width: 420px; margin: 18vh auto 0; text-align: center; }
+  .gate h1 { font: 800 26px/1.2 'Bricolage Grotesque', 'Figtree', sans-serif; margin: 0 0 8px; }
+  .gate p { color: var(--muted); margin: 0 0 20px; }
+
+  .sk { height: 14px; border-radius: 7px; margin: 12px 0; background: linear-gradient(90deg, var(--sk1) 25%, var(--sk2) 50%, var(--sk1) 75%); background-size: 200% 100%; animation: sh 1.2s ease-in-out infinite; }
+  @keyframes sh { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+  @media (prefers-reduced-motion: reduce) { .sk, .progress.on { animation: none; } }
+</style>
+</head>
+<body>
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<!-- Shown when there is no valid admin session -->
+<div class="gate wrap" id="gate" hidden>
+  <h1 id="gateTitle">Sign in required</h1>
+  <p id="gateText">Sign in with the administrator account to open the Admin Console.</p>
+  <a class="btn primary" href="/#signin">Go to sign in</a>
+</div>
+
+<div class="wrap" id="app" hidden>
+  <div class="head">
+    <div class="brand"><img src="/icon-192.png" alt=""><b>Reminder Desk</b><span class="tag">Admin</span></div>
+    <button class="btn" type="button" id="signOut">Sign out</button>
+  </div>
+
+  <nav class="nav" role="tablist" aria-label="Admin sections">
+    <button type="button" role="tab" data-view="overview" aria-selected="true">Overview</button>
+    <button type="button" role="tab" data-view="accounts" aria-selected="false">Accounts</button>
+    <button type="button" role="tab" data-view="security" aria-selected="false">Security</button>
+    <button type="button" role="tab" data-view="audit" aria-selected="false">Audit log</button>
+    <button type="button" role="tab" data-view="settings" aria-selected="false">Settings</button>
+  </nav>
+
+  <main id="view"></main>
+</div>
+
+<!-- Account details -->
+<div class="overlay" id="sheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <button type="button" class="close" data-close aria-label="Close">&times;</button>
+    <div id="sheetBody"></div>
+  </div>
+</div>
+
+<!-- Confirmation for every account change -->
+<div class="overlay" id="confirm" hidden>
+  <div class="sheet" role="alertdialog" aria-modal="true" aria-labelledby="cTitle" aria-describedby="cText">
+    <h3 id="cTitle"></h3>
+    <p id="cText" class="sub" style="margin:6px 0 0"></p>
+    <div class="field" id="cNoteWrap" hidden><label for="cNote">Reason (only you can see this)</label><textarea class="input" id="cNote" maxlength="200"></textarea></div>
+    <div class="field" id="cTypeWrap" hidden><label for="cType" id="cTypeLabel"></label><input class="input" id="cType" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+    <div class="error" id="cError" hidden></div>
+    <div class="dialog-actions">
+      <button type="button" class="btn" data-cancel>Cancel</button>
+      <button type="button" class="btn primary" id="cGo"></button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+  const API_URL = 'https://script.google.com/macros/s/AKfycbw3KB9GAnP5WFbgS64nmzZoYflCxOQo23-0c8wb-U-2VItp4ULoFohyBFVitg-2AoffNg/exec';
+  const $ = id => document.getElementById(id);
+  const KEY = 'rd_admin';
+
+  // The admin session token lives only for this browser tab (sessionStorage),
+  // never in localStorage, and is sent with every request for the server to check.
+  let token = null;
+  try { token = sessionStorage.getItem(KEY); } catch (e) { token = null; }
+  let idleMinutes = 30;
+  try { idleMinutes = Number(sessionStorage.getItem('rd_admin_idle')) || 30; } catch (e) {}
+
+  function el(tag, cls, text) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  // ---------- Server requests ----------
+  let pending = 0, barTimer = null;
+  function progress(d) {
+    pending = Math.max(0, pending + d);
+    const bar = $('progress');
+    if (pending && !barTimer && !bar.classList.contains('on')) barTimer = setTimeout(() => { barTimer = null; if (pending) bar.classList.add('on'); }, 150);
+    if (!pending) { clearTimeout(barTimer); barTimer = null; bar.classList.remove('on'); }
+  }
+  async function call(fn, ...args) {
+    progress(1);
+    try {
+      let res;
+      try {
+        res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ fn: fn, args: [token].concat(args) }), credentials: 'omit', redirect: 'follow' });
+      } catch (e) { throw new Error("Can't connect right now. Check your internet connection and try again."); }
+      let data;
+      try { data = await res.json(); } catch (e) { throw new Error('Something went wrong. Please try again in a moment.'); }
+      if (!data.ok) {
+        if (/admin session has ended/i.test(data.error || '')) { endSession('Your admin session has ended', 'For security, admin sessions end after ' + idleMinutes + ' minutes without activity. Please sign in again.'); }
+        throw new Error(data.error || 'Something went wrong. Please try again.');
+      }
+      return data.result;
+    } finally { progress(-1); }
+  }
+
+  function endSession(title, text) {
+    try { sessionStorage.removeItem(KEY); } catch (e) {}
+    token = null;
+    closeOverlays();
+    $('app').hidden = true;
+    $('gate').hidden = false;
+    $('gateTitle').textContent = title;
+    $('gateText').textContent = text;
+  }
+
+  // ---------- Inactivity ----------
+  // The server ends the session after the idle limit; the page also locks itself so
+  // an unattended screen does not stay open.
+  let lastActive = Date.now();
+  ['pointerdown', 'keydown', 'scroll'].forEach(ev => window.addEventListener(ev, () => { lastActive = Date.now(); }, { passive: true }));
+  setInterval(() => {
+    if (token && Date.now() - lastActive > idleMinutes * 60000) {
+      call('adminSignOut').catch(() => {});
+      endSession('You were signed out', 'For security, admin sessions end after ' + idleMinutes + ' minutes without activity.');
+    }
+  }, 20000);
+
+  // ---------- Formatting ----------
+  function when(ms) {
+    if (!ms) return 'Never';
+    const d = new Date(ms);
+    const mins = Math.round((Date.now() - ms) / 60000);
+    if (mins >= 0 && mins < 1) return 'Just now';
+    if (mins >= 0 && mins < 60) return mins + ' min ago';
+    if (mins >= 0 && mins < 1440) return Math.round(mins / 60) + ' h ago';
+    return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+  function full(ms) {
+    if (!ms) return 'Never';
+    return new Date(ms).toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+  }
+  function statusBadge(u) {
+    if (u.status === 'Blocked') return el('span', 'badge b-err', 'Blocked');
+    if (u.status === 'Disabled') return el('span', 'badge b-mute', 'Disabled');
+    if (u.locked) return el('span', 'badge b-warn', 'Locked');
+    return el('span', 'badge b-ok', 'Active');
+  }
+  function toast(msg) {
+    const t = $('toast');
+    t.textContent = msg; t.hidden = false;
+    clearTimeout(toast.t); toast.t = setTimeout(() => { t.hidden = true; }, 2600);
+  }
+  function skeleton(n) {
+    const c = el('div', 'card');
+    for (let i = 0; i < (n || 5); i++) { const s = el('div', 'sk'); s.style.width = (90 - i * 9) + '%'; c.appendChild(s); }
+    return c;
+  }
+  function errorCard(msg, retry) {
+    const c = el('div', 'card');
+    c.appendChild(el('p', null, msg));
+    const b = el('button', 'btn', 'Try again'); b.type = 'button'; b.addEventListener('click', retry);
+    c.appendChild(b);
+    return c;
+  }
+
+  // ---------- Views ----------
+  let current = 'overview';
+  const views = { overview: viewOverview, accounts: viewAccounts, security: viewSecurity, audit: viewAudit, settings: viewSettings };
+  document.querySelectorAll('.nav button').forEach(b => b.addEventListener('click', () => show(b.dataset.view)));
+  function show(name) {
+    current = name;
+    document.querySelectorAll('.nav button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.view === name)));
+    const v = $('view'); v.innerHTML = ''; v.appendChild(skeleton());
+    views[name](v);
+  }
+  function render(v, nodes) { v.innerHTML = ''; nodes.forEach(n => v.appendChild(n)); }
+
+  // Overview: is everything normal, and does anything need attention?
+  function viewOverview(v) {
+    call('adminOverview').then(o => {
+      const stats = el('div', 'stats');
+      [[o.users.total, 'Accounts'], [o.users.active, 'Active'], [o.users.blocked + o.users.disabled, 'Blocked or disabled'], [o.reminders.scheduled, 'Reminders scheduled']]
+        .forEach(([n, l]) => { const s = el('div', 'stat'); s.append(el('div', 'n', String(n)), el('div', 'l', l)); stats.appendChild(s); });
+
+      const attn = el('div', 'card');
+      attn.appendChild(el('h2', null, 'Needs attention'));
+      if (!o.attention.length) {
+        const g = el('div', 'allgood'); g.append(el('span', 'dot'), el('span', null, 'Everything looks normal.')); attn.appendChild(g);
+      } else {
+        o.attention.forEach(a => {
+          const r = el('div', 'attn'); r.append(el('span', 'dot'), el('p', null, a.text));
+          if (a.userId) { const b = el('button', 'btn', 'Review'); b.type = 'button'; b.addEventListener('click', () => openUser(a.userId)); r.appendChild(b); }
+          attn.appendChild(r);
+        });
+      }
+
+      const health = el('div', 'card');
+      health.appendChild(el('h2', null, 'System health'));
+      const kv = el('div', 'kv');
+      const add = (k, val, cls) => { kv.append(el('div', 'k', k)); const d = el('div', 'v'); if (cls) d.appendChild(el('span', 'badge ' + cls, val)); else d.textContent = val; kv.append(d); };
+      add('Sending alarm', o.system.alarmOk ? 'Working' : 'Missing', o.system.alarmOk ? 'b-ok' : 'b-err');
+      add('Emails left today', String(o.system.quota), o.system.quota < 20 ? 'b-warn' : null);
+      add('Next reminder due', o.system.nextDue ? full(o.system.nextDue) : 'None scheduled');
+      add('Sent in the last 24 hours', String(o.reminders.sent24));
+      add('Not delivered (7 days)', String(o.reminders.failed7), o.reminders.failed7 ? 'b-warn' : null);
+      add('Last backup', o.system.lastBackup ? full(o.system.lastBackup) : 'Not yet');
+      add('Password resets pending', String(o.resets.pending));
+      add('Locked accounts', String(o.users.locked), o.users.locked ? 'b-warn' : null);
+      add('New sign-ups', o.system.signupsOpen ? 'Open' : 'Closed', o.system.signupsOpen ? 'b-ok' : 'b-mute');
+      add('Guest reminders', o.system.guestsOpen ? 'On' : 'Off', o.system.guestsOpen ? 'b-ok' : 'b-mute');
+      health.appendChild(kv);
+
+      const ev = el('div', 'card');
+      ev.appendChild(el('h2', null, 'Recent security events'));
+      ev.appendChild(eventList(o.events));
+      const more = el('button', 'btn', 'View all'); more.type = 'button'; more.style.marginTop = '8px'; more.addEventListener('click', () => show('security'));
+      ev.appendChild(more);
+      render(v, [stats, attn, health, ev]);
+    }).catch(e => { if (token) render(v, [errorCard(e.message, () => show('overview'))]); });
+  }
+
+  // Accounts: account and security information only, never reminder content.
+  let filter = 'all', query = '';
+  function viewAccounts(v) {
+    call('adminUsers').then(users => {
+      const card = el('div', 'card');
+      card.appendChild(el('h2', null, 'Accounts'));
+      card.appendChild(el('p', 'sub', 'Account and security details only. Reminder content is never shown here.'));
+      const tools = el('div', 'tools');
+      const search = el('input', 'search'); search.type = 'search'; search.placeholder = 'Search by name or email'; search.value = query; search.setAttribute('aria-label', 'Search accounts');
+      const chips = el('div', 'chips');
+      const FILTERS = [['all', 'All'], ['active', 'Active'], ['locked', 'Locked'], ['blocked', 'Blocked'], ['disabled', 'Disabled'], ['reset', 'Reset issues']];
+      FILTERS.forEach(([k, l]) => { const c = el('button', 'chip', l); c.type = 'button'; c.setAttribute('aria-pressed', String(filter === k)); c.addEventListener('click', () => { filter = k; draw(); chips.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', String(x === c))); }); chips.appendChild(c); });
+      tools.append(search, chips);
+      const list = el('div', 'list');
+      card.append(tools, list);
+      const match = u => {
+        if (query && !(u.name + ' ' + u.email).toLowerCase().includes(query)) return false;
+        if (filter === 'active') return u.status === 'Active' && !u.locked;
+        if (filter === 'locked') return u.locked;
+        if (filter === 'blocked') return u.status === 'Blocked';
+        if (filter === 'disabled') return u.status === 'Disabled';
+        if (filter === 'reset') return !!u.reset;
+        return true;
+      };
+      function draw() {
+        list.innerHTML = '';
+        const shown = users.filter(match);
+        if (!shown.length) { list.appendChild(el('div', 'empty', users.length ? 'No accounts match.' : 'No accounts yet.')); return; }
+        shown.forEach(u => {
+          const r = el('button', 'row'); r.type = 'button';
+          const main = el('div', 'main'); main.append(el('div', 't', u.name || '(no name)'), el('div', 'm', u.email));
+          const side = el('div', 'side'); side.appendChild(statusBadge(u));
+          if (u.reset) side.appendChild(el('span', 'badge ' + (u.reset.state === 'Expired' ? 'b-warn' : 'b-mute'), 'Reset ' + u.reset.state.toLowerCase()));
+          side.appendChild(el('span', 'm', 'Signed in ' + when(u.lastIn).toLowerCase()));
+          r.append(main, side);
+          r.addEventListener('click', () => openUser(u.id));
+          list.appendChild(r);
+        });
+      }
+      search.addEventListener('input', () => { query = search.value.trim().toLowerCase(); draw(); });
+      draw();
+      render(v, [card]);
+    }).catch(e => { if (token) render(v, [errorCard(e.message, () => show('accounts'))]); });
+  }
+
+  // One account: details, available actions, recent security events and reset history.
+  function openUser(id) {
+    const body = $('sheetBody');
+    body.innerHTML = ''; body.appendChild(skeleton(4));
+    openOverlay('sheet');
+    call('adminUser', id).then(u => drawUser(u)).catch(e => { body.innerHTML = ''; body.appendChild(el('p', 'error', e.message)); });
+  }
+
+  function drawUser(u) {
+    const body = $('sheetBody');
+    body.innerHTML = '';
+    const h = el('h3', null, u.name || '(no name)'); h.id = 'sheetTitle';
+    const top = el('div'); top.style.cssText = 'display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:2px 0 14px';
+    top.append(el('span', 'm', u.email), statusBadge(u));
+    top.firstChild.style.color = 'var(--muted)';
+    body.append(h, top);
+
+    const kv = el('div', 'kv');
+    const add = (k, val) => { kv.append(el('div', 'k', k), el('div', 'v', val)); };
+    add('Created', full(u.created));
+    add('Last sign-in', full(u.lastIn));
+    add('Signed-in sessions', String(u.sessions));
+    add('Trusted devices', String(u.devices));
+    add('Sign-in', u.locked ? 'Locked after failed attempts' : 'Normal');
+    add('Password reset', u.reset ? (u.reset.state === 'Pending' ? 'Pending, expires ' + full(u.reset.expires) : 'Expired, not completed') : 'None');
+    if (u.status !== 'Active') add(u.status + ' on', full(u.statusChanged));
+    if (u.statusNote) add('Reason', u.statusNote);
+    body.appendChild(kv);
+
+    const act = (label, action, opts) => {
+      const b = el('button', 'btn' + (opts && opts.danger ? ' danger' : ''), label); b.type = 'button';
+      b.addEventListener('click', () => confirmAction(u, action, label, opts || {}));
+      return b;
+    };
+    const access = el('div', 'actions');
+    if (u.status === 'Active') {
+      access.append(act('Block account', 'block', { danger: true, note: true,
+        text: u.email + ' will be signed out everywhere and won\'t be able to sign in. Their scheduled reminders are paused until you unblock them.' }));
+      access.append(act('Disable account', 'disable', { danger: true, note: true,
+        text: 'Use this to close the account, for example when the person asks. They are signed out everywhere and can\'t sign in. Scheduled reminders are paused.' }));
+    } else {
+      access.append(act(u.status === 'Blocked' ? 'Unblock account' : 'Re-enable account', 'activate', {
+        text: u.email + ' will be able to sign in again. Paused reminders that are still in the future will be sent as scheduled.' }));
+    }
+    const sec = el('div', 'actions');
+    sec.append(act('Sign out everywhere', 'signOut', { text: 'Ends all ' + u.sessions + ' signed-in ' + (u.sessions === 1 ? 'session' : 'sessions') + '. They can sign in again with their password.' }));
+    if (u.status === 'Active') sec.append(act('Send password reset', 'sendReset', { text: 'Emails ' + u.email + ' a new reset link and code. Any earlier reset is cancelled. Their current password keeps working until they set a new one.' }));
+    if (u.reset && u.reset.state === 'Pending') sec.append(act('Cancel password reset', 'cancelReset', { text: 'The pending reset link and code will stop working.' }));
+    if (u.locked) sec.append(act('Unlock sign-in', 'unlock', { text: 'Clears the failed attempts so they can try signing in again straight away.' }));
+    sec.append(act('Clear trusted devices', 'forgetDevices', { text: 'Their next sign-in on each device will be treated as new and send them a security email.' }));
+    const danger = el('div', 'actions');
+    danger.append(act('Delete account', 'delete', { danger: true, type: u.email,
+      text: 'Permanently deletes this account and its sign-ins, and cancels its scheduled reminders. This can\'t be undone.' }));
+
+    body.append(el('div', 'group-title', 'Access'), access, el('div', 'group-title', 'Security'), sec, el('div', 'group-title', 'Danger zone'), danger);
+
+    body.appendChild(el('div', 'group-title', 'Recent security events'));
+    body.appendChild(eventList(u.events, true));
+    if (u.resetHistory && u.resetHistory.length) {
+      body.appendChild(el('div', 'group-title', 'Password resets'));
+      const l = el('div', 'list');
+      u.resetHistory.forEach(r => {
+        const row = el('div', 'row'); const main = el('div', 'main');
+        main.append(el('div', 't', r.state), el('div', 'm', 'Requested by ' + (r.source === 'Administrator' ? 'you' : 'the user') + ', ' + full(r.requested)));
+        row.appendChild(main); l.appendChild(row);
+      });
+      body.appendChild(l);
+    }
+  }
+
+  // Every account change goes through this confirmation. Deleting also needs the email typed.
+  function confirmAction(u, action, label, opts) {
+    $('cTitle').textContent = label + '?';
+    $('cText').textContent = opts.text || '';
+    $('cNoteWrap').hidden = !opts.note; $('cNote').value = '';
+    $('cTypeWrap').hidden = !opts.type; $('cType').value = '';
+    $('cTypeLabel').textContent = 'Type ' + (opts.type || '') + ' to confirm';
+    $('cError').hidden = true;
+    const go = $('cGo');
+    go.textContent = label; go.disabled = false;
+    go.className = 'btn ' + (opts.danger ? 'danger solid' : 'primary');
+    go.onclick = () => {
+      if (opts.type && $('cType').value.trim().toLowerCase() !== opts.type) { $('cError').textContent = 'Type the email address exactly to confirm.'; $('cError').hidden = false; return; }
+      go.disabled = true; go.textContent = 'Working…';
+      call('adminAction', u.id, action, { note: $('cNote').value, confirm: $('cType').value })
+        .then(res => {
+          closeOverlay('confirm');
+          if (res && res.deleted) { closeOverlay('sheet'); toast('Account deleted'); show(current); return; }
+          drawUser(res); toast('Done'); if (current !== 'settings') views[current]($('view'));
+        })
+        .catch(e => { go.disabled = false; go.textContent = label; if (token) { $('cError').textContent = e.message; $('cError').hidden = false; } });
+    };
+    openOverlay('confirm');
+    setTimeout(() => (opts.type ? $('cType') : opts.note ? $('cNote') : go).focus(), 50);
+  }
+
+  function eventList(events, compact) {
+    const l = el('div', 'list');
+    if (!events || !events.length) { l.appendChild(el('div', 'empty', 'No events yet.')); return l; }
+    events.forEach(e => {
+      const r = el('div', 'row'); const main = el('div', 'main');
+      const bad = /failed|locked|Blocked|blocked|disabled|deleted/i.test(e.event);
+      main.append(el('div', 't', e.event), el('div', 'm', [compact ? '' : e.email, e.device, e.detail].filter(Boolean).join(', ')));
+      const side = el('div', 'side');
+      if (bad) side.appendChild(el('span', 'badge b-warn', 'Check'));
+      side.appendChild(el('span', 'm', when(e.time)));
+      r.append(main, side); r.title = full(e.time);
+      l.appendChild(r);
+    });
+    return l;
+  }
+
+  let evFilter = '';
+  function viewSecurity(v) {
+    call('adminEvents', evFilter).then(events => {
+      const card = el('div', 'card');
+      card.appendChild(el('h2', null, 'Security events'));
+      card.appendChild(el('p', 'sub', 'Sign-ins, failed attempts, lockouts and password resets. Kept for the most recent 3,000 events.'));
+      const chips = el('div', 'chips'); chips.style.marginBottom = '10px';
+      [['', 'All'], ['failed', 'Failed and locked'], ['resets', 'Password resets'], ['admin', 'Admin']].forEach(([k, l]) => {
+        const c = el('button', 'chip', l); c.type = 'button'; c.setAttribute('aria-pressed', String(evFilter === k));
+        c.addEventListener('click', () => { evFilter = k; show('security'); }); chips.appendChild(c);
+      });
+      card.append(chips, eventList(events));
+      render(v, [card]);
+    }).catch(e => { if (token) render(v, [errorCard(e.message, () => show('security'))]); });
+  }
+
+  function viewAudit(v) {
+    call('adminAudit').then(rows => {
+      const card = el('div', 'card');
+      card.appendChild(el('h2', null, 'Audit log'));
+      card.appendChild(el('p', 'sub', 'Every administrative action, with when, on which account and from which device. Entries can\'t be edited from here.'));
+      const l = el('div', 'list');
+      if (!rows.length) l.appendChild(el('div', 'empty', 'No admin actions yet.'));
+      rows.forEach(a => {
+        const r = el('div', 'row'); const main = el('div', 'main');
+        main.append(el('div', 't', a.action + (a.target ? ': ' + a.target : '')), el('div', 'm', [a.admin === 'System' ? 'System' : 'By ' + a.admin, a.device, a.detail].filter(Boolean).join(', ')));
+        const side = el('div', 'side'); side.appendChild(el('span', 'm', when(a.time)));
+        r.append(main, side); r.title = full(a.time); l.appendChild(r);
+      });
+      card.appendChild(l);
+      render(v, [card]);
+    }).catch(e => { if (token) render(v, [errorCard(e.message, () => show('audit'))]); });
+  }
+
+  function viewSettings(v) {
+    call('adminSettings').then(s => {
+      const access = el('div', 'card');
+      access.appendChild(el('h2', null, 'Access'));
+      const tog = (label, desc, key, on) => {
+        const row = el('div', 'toggle'); const txt = el('div'); txt.append(el('div', 't', label), el('div', 'd', desc));
+        const sw = el('label', 'switch'); const inp = el('input'); inp.type = 'checkbox'; inp.checked = on; inp.setAttribute('aria-label', label);
+        sw.append(inp, el('span'));
+        inp.addEventListener('change', () => {
+          inp.disabled = true;
+          call('adminSaveSettings', { [key]: inp.checked }).then(() => { toast('Saved'); }).catch(e => { inp.checked = !inp.checked; if (token) toast(e.message); }).finally(() => { inp.disabled = false; });
+        });
+        row.append(txt, sw); return row;
+      };
+      access.append(tog('New sign-ups', 'Allow people to create new accounts.', 'signupsOpen', s.signupsOpen),
+        tog('Guest reminders', 'Allow reminders without an account, using the access password.', 'guestsOpen', s.guestsOpen));
+
+      const pw = el('div', 'card');
+      pw.appendChild(el('h2', null, 'Access password'));
+      pw.appendChild(el('p', 'sub', 'Shared with family for guest reminders and for creating accounts. Changing it does not affect existing accounts.'));
+      const f = el('div', 'field'); const lab = el('label', null, 'New access password'); lab.htmlFor = 'apw';
+      const inp = el('input', 'input'); inp.id = 'apw'; inp.type = 'password'; inp.autocomplete = 'new-password';
+      const save = el('button', 'btn primary', 'Change access password'); save.type = 'button'; save.style.marginTop = '10px';
+      save.addEventListener('click', () => {
+        if (inp.value.length < 6) { toast('Use at least 6 characters.'); return; }
+        if (!window.confirm('Change the access password? Anyone using the old one will need the new one.')) return;
+        save.disabled = true;
+        call('adminSaveSettings', { accessPassword: inp.value }).then(() => { inp.value = ''; toast('Access password changed'); })
+          .catch(e => { if (token) toast(e.message); }).finally(() => { save.disabled = false; });
+      });
+      f.append(lab, inp); pw.append(f, save);
+
+      const admin = el('div', 'card');
+      admin.appendChild(el('h2', null, 'Administrator'));
+      const kv = el('div', 'kv');
+      [['Admin email', s.adminEmail], ['Sign-in', 'Password and emailed code'], ['Signs out after', s.idleMinutes + ' min idle, ' + s.maxHours + ' h at most']]
+        .forEach(([k, val]) => kv.append(el('div', 'k', k), el('div', 'v', val)));
+      admin.appendChild(kv);
+      admin.appendChild(el('p', 'hint', 'To change the admin password, sign out and use "Forgot password?" on the sign-in screen with the admin email.'));
+      admin.appendChild(el('div', 'group-title', 'Admin sessions'));
+      const l = el('div', 'list');
+      s.sessions.forEach(x => { const r = el('div', 'row'); const main = el('div', 'main');
+        main.append(el('div', 't', (x.device || 'Unknown device') + (x.current ? ' (this one)' : '')), el('div', 'm', 'Started ' + full(x.created) + ', active ' + when(x.lastSeen).toLowerCase()));
+        r.appendChild(main); l.appendChild(r); });
+      admin.appendChild(l);
+      if (s.sessions.length > 1) {
+        const b = el('button', 'btn danger', 'Sign out other sessions'); b.type = 'button'; b.style.marginTop = '10px';
+        b.addEventListener('click', () => { if (!window.confirm('Sign out every other admin session?')) return;
+          call('adminSaveSettings', { signOutOtherAdmins: true }).then(() => { toast('Other sessions signed out'); show('settings'); }).catch(e => { if (token) toast(e.message); }); });
+        admin.appendChild(b);
+      }
+      render(v, [access, pw, admin]);
+    }).catch(e => { if (token) render(v, [errorCard(e.message, () => show('settings'))]); });
+  }
+
+  // ---------- Overlays ----------
+  function openOverlay(id) { $(id).hidden = false; document.body.style.overflow = 'hidden'; }
+  function closeOverlay(id) { $(id).hidden = true; if ($('sheet').hidden && $('confirm').hidden) document.body.style.overflow = ''; }
+  function closeOverlays() { closeOverlay('confirm'); closeOverlay('sheet'); }
+  document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => closeOverlay('sheet')));
+  document.querySelectorAll('[data-cancel]').forEach(b => b.addEventListener('click', () => closeOverlay('confirm')));
+  ['sheet', 'confirm'].forEach(id => $(id).addEventListener('click', e => { if (e.target === $(id)) closeOverlay(id); }));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { if (!$('confirm').hidden) closeOverlay('confirm'); else closeOverlay('sheet'); } });
+
+  $('signOut').addEventListener('click', () => {
+    call('adminSignOut').catch(() => {}).finally(() => endSession('Signed out', 'You have signed out of the Admin Console.'));
+  });
+
+  // ---------- Start ----------
+  if (!token) {
+    endSession('Sign in required', 'Sign in with the administrator account to open the Admin Console.');
+  } else {
+    $('app').hidden = false;
+    show('overview');
+  }
+</script>
+</body>
+</html>

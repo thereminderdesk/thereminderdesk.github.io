@@ -856,6 +856,16 @@
       <button type="submit" class="primary">Reset password</button>
       <p class="switch"><button type="button" class="text-btn" data-go="forgot1">Resend code</button></p>
     </form>
+
+    <form id="fAdminCode" novalidate hidden>
+      <h2>Check your email</h2>
+      <p class="sub">For extra security, enter the 6-digit code we sent to <strong id="acSent"></strong>. It expires in 10 minutes.</p>
+      <div class="field"><label for="acCode">Code</label>
+        <input type="text" id="acCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code"></div>
+      <p class="error" role="alert"></p>
+      <button type="submit" class="primary">Continue</button>
+      <p class="switch"><button type="button" class="text-btn" data-go="signin">Back to sign in</button></p>
+    </form>
   </div>
 </div>
 
@@ -1572,7 +1582,7 @@
 
   // ---------- Sign-in panel ----------
 
-  const panes = { signin: 'fSignIn', signup: 'fSignUp', forgot1: 'fForgot1', forgot2: 'fForgot2' };
+  const panes = { signin: 'fSignIn', signup: 'fSignUp', forgot1: 'fForgot1', forgot2: 'fForgot2', adminCode: 'fAdminCode' };
   let lastFocus = null;
 
   function openAuth(mode) {
@@ -1644,23 +1654,87 @@
     });
   }
 
+  // A little about this device for security emails: a random id it keeps,
+  // a readable name like "Chrome on Android", and its time zone.
+  function deviceInfo() {
+    let id = store.get('rd_device');
+    if (!id) {
+      id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2);
+      store.set('rd_device', id);
+    }
+    const ua = navigator.userAgent;
+    const browser = /Edg\//.test(ua) ? 'Edge' : /SamsungBrowser/.test(ua) ? 'Samsung Internet' : /OPR\//.test(ua) ? 'Opera'
+      : /Firefox\//.test(ua) ? 'Firefox' : /CriOS|Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'Browser';
+    const os = /iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'iPad'
+      : /Android/.test(ua) ? 'Android' : /Windows/.test(ua) ? 'Windows' : /Mac OS X/.test(ua) ? 'Mac' : /Linux/.test(ua) ? 'Linux' : 'unknown system';
+    return { id: id, label: browser + ' on ' + os, zone: TZ.short, offset: -new Date().getTimezoneOffset() };
+  }
+
   bindPane('fSignIn', ['siEmail', 'siPass'], () =>
-    call('signIn', { email: $('siEmail').value, password: $('siPass').value })
-      .then(res => { $('siPass').value = ''; signedIn(res); }));
+    call('signIn', { email: $('siEmail').value, password: $('siPass').value, device: deviceInfo() })
+      .then(res => {
+        $('siPass').value = '';
+        if (res && res.adminStep === 'code') {   // administrator: second step before any access
+          adminChallenge = res.challenge;
+          $('acSent').textContent = res.sentTo;
+          goPane('adminCode');
+          return;
+        }
+        signedIn(res);
+      }));
+
+  // Administrator second step. The server checks the code and only then creates an
+  // admin session; the token is kept for this browser tab only.
+  let adminChallenge = null;
+  bindPane('fAdminCode', ['acCode'], () =>
+    call('adminVerify', { challenge: adminChallenge, code: $('acCode').value, device: deviceInfo() })
+      .then(res => {
+        try { sessionStorage.setItem('rd_admin', res.adminToken); sessionStorage.setItem('rd_admin_idle', String(res.idleMinutes || 30)); } catch (e) {}
+        location.href = '/admin.html';
+      }));
 
   bindPane('fSignUp', ['suName', 'suEmail', 'suPass', 'suAccess'], () =>
     call('signUp', {
       name: $('suName').value, email: $('suEmail').value,
-      password: $('suPass').value, accessPassword: $('suAccess').value
+      password: $('suPass').value, accessPassword: $('suAccess').value, device: deviceInfo()
     }).then(res => { $('suPass').value = ''; $('suAccess').value = ''; signedIn(res); }));
 
   bindPane('fForgot1', ['fpEmail'], () =>
-    call('requestReset', $('fpEmail').value)
+    call('requestReset', $('fpEmail').value, deviceInfo())
       .then(() => { $('fpShown').textContent = $('fpEmail').value.trim(); goPane('forgot2'); }));
 
   bindPane('fForgot2', ['fpCode', 'fpPass'], () =>
-    call('resetPassword', { email: $('fpEmail').value, code: $('fpCode').value, password: $('fpPass').value })
-      .then(res => { $('fpCode').value = ''; $('fpPass').value = ''; signedIn(res); }));
+    call('resetPassword', { email: $('fpEmail').value, code: $('fpCode').value, password: $('fpPass').value, device: deviceInfo() })
+      .then(res => {
+        $('fpCode').value = ''; $('fpPass').value = '';
+        if (res && res.admin) {   // admin password set: sign in with it (and the emailed code)
+          $('siEmail').value = $('fpEmail').value;
+          goPane('signin');
+          $('fSignIn').querySelector('.sub').textContent = 'Password updated. Sign in with your new password.';
+          return;
+        }
+        signedIn(res);
+      }));
+
+  // Links from emails. "Reset password" opens the reset screen with the email and code
+  // already filled in; "#forgot" opens the screen to request a new code.
+  (function openFromLink() {
+    const h = location.hash.replace(/^#/, '');
+    if (!h) return;
+    const q = new URLSearchParams(h);
+    if (q.has('reset')) {
+      $('fpEmail').value = q.get('email') || '';
+      $('fpShown').textContent = q.get('email') || 'your email';
+      openAuth('forgot2');
+      $('fpCode').value = (q.get('reset') || '').replace(/\D/g, '').slice(0, 6);
+      setTimeout(() => $('fpPass').focus(), 60);
+    } else if (h === 'forgot') {
+      openAuth('forgot1');
+    } else if (h === 'signin') {
+      openAuth('signin');
+    }
+    history.replaceState(null, '', location.pathname + location.search);   // the code does not stay in the address bar
+  })();
 
   // Lets phones install the site as an app (Add to Home screen). Harmless if it fails.
   if ('serviceWorker' in navigator) {
