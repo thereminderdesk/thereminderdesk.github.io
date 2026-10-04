@@ -559,6 +559,11 @@
   }
   .text-btn:focus-visible { outline: 3px solid var(--focus); border-radius: 4px; }
   .note { font-size: 14px; color: var(--muted); margin: -6px 0 16px; }
+  .google-wrap { margin: 0 0 6px; }
+  .g-btn { min-height: 44px; display: flex; justify-content: center; }
+  .g-btn > div { width: 100%; display: flex; justify-content: center; }
+  .or { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; margin: 16px 0 14px; }
+  .or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
   .field-hint { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
 
   /* ---------- When ---------- */
@@ -808,6 +813,7 @@
     <form id="fSignIn" novalidate>
       <h2 id="authTitle">Sign in</h2>
       <p class="sub">Sign in to view and manage your reminders.</p>
+      <div class="google-wrap" hidden><div class="g-btn" id="gBtnIn"></div><div class="or"><span>or</span></div></div>
       <div class="field"><label for="siEmail">Email</label>
         <input type="email" id="siEmail" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false"></div>
       <div class="field"><label for="siPass">Password</label>
@@ -821,6 +827,7 @@
     <form id="fSignUp" novalidate hidden>
       <h2>Create an account</h2>
       <p class="sub">Optional. View and manage your reminders on any device.</p>
+      <div class="google-wrap" hidden><div class="g-btn" id="gBtnUp"></div><div class="or"><span>or</span></div></div>
       <div class="field"><label for="suName">Name</label>
         <input type="text" id="suName" maxlength="80" autocomplete="name"></div>
       <div class="field"><label for="suEmail">Email</label>
@@ -855,6 +862,26 @@
       <p class="error" role="alert"></p>
       <button type="submit" class="primary">Reset password</button>
       <p class="switch"><button type="button" class="text-btn" data-go="forgot1">Resend code</button></p>
+    </form>
+
+    <form id="fGoogleNew" novalidate hidden>
+      <h2>Create your account</h2>
+      <p class="sub">You're signing up as <strong id="gnWho"></strong>. Enter the access password that was shared with you along with this link.</p>
+      <div class="field"><label for="gnAccess">Access password</label>
+        <input type="password" id="gnAccess" autocomplete="off"></div>
+      <p class="error" role="alert"></p>
+      <button type="submit" class="primary">Create account</button>
+      <p class="switch"><button type="button" class="text-btn" data-go="signin">Back to sign in</button></p>
+    </form>
+
+    <form id="fGoogleLink" novalidate hidden>
+      <h2>Connect Google</h2>
+      <p class="sub">An account for <strong id="glWho"></strong> already exists. Enter its Reminder Desk password once to connect Google sign-in. After that, Google signs you straight in.</p>
+      <div class="field"><label for="glPass">Reminder Desk password</label>
+        <input type="password" id="glPass" autocomplete="current-password"></div>
+      <p class="error" role="alert"></p>
+      <button type="submit" class="primary">Connect and sign in</button>
+      <p class="switch"><button type="button" class="text-btn" id="glForgot">Forgot password?</button></p>
     </form>
 
     <form id="fAdminCode" novalidate hidden>
@@ -1000,9 +1027,10 @@
 
     if (token) {
       verifySession(cached);
+      setTimeout(loadGoogle, 1500);   // only needed if they later sign out
     } else {
-      // Wakes the server up while a guest is typing, so their "Set reminder" is quick.
-      callQuiet('getSession', '').catch(() => {});
+      // Wakes the server up while a guest is typing, and loads Google sign-in if it is set up.
+      loadGoogle();
     }
   })();
 
@@ -1582,7 +1610,8 @@
 
   // ---------- Sign-in panel ----------
 
-  const panes = { signin: 'fSignIn', signup: 'fSignUp', forgot1: 'fForgot1', forgot2: 'fForgot2', adminCode: 'fAdminCode' };
+  const panes = { signin: 'fSignIn', signup: 'fSignUp', forgot1: 'fForgot1', forgot2: 'fForgot2', adminCode: 'fAdminCode',
+    googleNew: 'fGoogleNew', googleLink: 'fGoogleLink' };
   let lastFocus = null;
 
   function openAuth(mode) {
@@ -1590,7 +1619,103 @@
     $('auth').hidden = false;
     document.body.style.overflow = 'hidden';
     goPane(mode);
+    renderGoogle();
   }
+
+  // ---------- Continue with Google ----------
+  // Google's own button. Google returns a signed ID token, which goes straight to the
+  // server; the server checks it with Google before anyone is signed in. The token
+  // carries a one-time code (nonce) from the server, so it can't be reused.
+  let gConfig = null, gScript = null, gReady = false, gPending = null;
+
+  function loadGoogle() {
+    return callQuiet('getConfig').then(cfg => {
+      gConfig = cfg;
+      if (!cfg || !cfg.googleClientId) return;
+      if (!gScript) {
+        gScript = new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'https://accounts.google.com/gsi/client';
+          s.async = true; s.onload = resolve; s.onerror = reject;
+          document.head.appendChild(s);
+        });
+      }
+      return gScript.then(() => {
+        google.accounts.id.initialize({
+          client_id: cfg.googleClientId,
+          nonce: cfg.nonce,
+          callback: onGoogle,
+          ux_mode: 'popup',
+          auto_select: false,
+          cancel_on_tap_outside: true,
+          use_fedcm_for_button: true
+        });
+        gReady = true;
+        renderGoogle();
+      });
+    }).catch(() => { gReady = false; });   // no Google button; email and password still work
+  }
+
+  function renderGoogle() {
+    const show = gReady && !!(gConfig && gConfig.googleClientId);
+    document.querySelectorAll('.google-wrap').forEach(w => { w.hidden = !show; });
+    if (!show || $('auth').hidden) return;
+    const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    [['gBtnIn', 'signin_with'], ['gBtnUp', 'signup_with']].forEach(([id, text]) => {
+      const box = $(id);
+      if (!box || box.offsetParent === null) return;   // only the panel that is open
+      box.innerHTML = '';
+      const width = Math.min(400, Math.max(200, Math.round(box.getBoundingClientRect().width)));
+      google.accounts.id.renderButton(box, {
+        type: 'standard', theme: dark ? 'filled_black' : 'outline', size: 'large',
+        shape: 'pill', text: 'continue_with', logo_alignment: 'center', width: width
+      });
+    });
+  }
+
+  // A fresh one-time code for the next Google sign-in.
+  function refreshGoogle() { gReady = false; loadGoogle(); }
+
+  function onGoogle(resp) {
+    if (!resp || !resp.credential) return;
+    gPending = resp.credential;
+    const form = $(panes[currentPane] || 'fSignIn');
+    clearErrors(form);
+    progress(1);
+    sendGoogle({})
+      .catch(err => { paneError(form, err.message); refreshGoogle(); })
+      .finally(() => progress(-1));
+  }
+
+  // Sends the Google token, plus a password or access password when the server asked for one.
+  function sendGoogle(extra) {
+    return call('googleSignIn', Object.assign({ credential: gPending, device: deviceInfo() }, extra)).then(res => {
+      if (res && res.needsAccessPassword) {
+        $('gnWho').textContent = (res.name ? res.name + ', ' : '') + res.email;
+        goPane('googleNew');
+        return;
+      }
+      if (res && res.linkRequired) {
+        $('glWho').textContent = res.email;
+        $('fpEmail').value = res.email;
+        goPane('googleLink');
+        return;
+      }
+      gPending = null;
+      refreshGoogle();
+      signedIn(res);
+    });
+  }
+
+  bindPane('fGoogleNew', ['gnAccess'], () =>
+    sendGoogle({ accessPassword: $('gnAccess').value }).then(() => { $('gnAccess').value = ''; })
+      .catch(err => { if (/expired|didn't work/i.test(err.message)) { goPane('signin'); refreshGoogle(); } throw err; }));
+  bindPane('fGoogleLink', ['glPass'], () =>
+    sendGoogle({ password: $('glPass').value }).then(() => { $('glPass').value = ''; })
+      .catch(err => { if (/expired|didn't work/i.test(err.message)) { goPane('signin'); refreshGoogle(); } throw err; }));
+  document.addEventListener('click', e => {
+    if (e.target && e.target.id === 'glForgot') goPane('forgot1');
+  });
 
   function closeAuth() {
     $('auth').hidden = true;
@@ -1598,7 +1723,9 @@
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
 
+  let currentPane = 'signin';
   function goPane(mode) {
+    currentPane = mode;
     Object.keys(panes).forEach(k => { $(panes[k]).hidden = k !== mode; });
     const form = $(panes[mode]);
     clearErrors(form);
@@ -1611,6 +1738,7 @@
       const go = b.dataset.go;
       if (go === 'forgot1' && $('siEmail').value) $('fpEmail').value = $('siEmail').value;
       goPane(go);
+      renderGoogle();
     })
   );
   $('openSignIn').addEventListener('click', () => openAuth('signin'));

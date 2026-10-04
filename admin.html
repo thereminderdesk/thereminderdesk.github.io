@@ -439,6 +439,7 @@
     const add = (k, val) => { kv.append(el('div', 'k', k), el('div', 'v', val)); };
     add('Created', full(u.created));
     add('Last sign-in', full(u.lastIn));
+    add('Sign-in methods', u.methods && u.methods.length ? u.methods.join(' and ') : 'None yet (can set a password with Forgot password)');
     add('Signed-in sessions', String(u.sessions));
     add('Trusted devices', String(u.devices));
     add('Sign-in', u.locked ? 'Locked after failed attempts' : 'Normal');
@@ -467,6 +468,9 @@
     if (u.status === 'Active') sec.append(act('Send password reset', 'sendReset', { text: 'Emails ' + u.email + ' a new reset link and code. Any earlier reset is cancelled. Their current password keeps working until they set a new one.' }));
     if (u.reset && u.reset.state === 'Pending') sec.append(act('Cancel password reset', 'cancelReset', { text: 'The pending reset link and code will stop working.' }));
     if (u.locked) sec.append(act('Unlock sign-in', 'unlock', { text: 'Clears the failed attempts so they can try signing in again straight away.' }));
+    if (u.methods && u.methods.indexOf('Google') >= 0) sec.append(act('Disconnect Google', 'unlinkGoogle', {
+      text: u.methods.indexOf('Password') >= 0 ? 'They will sign in with their password instead. They can connect Google again by confirming their password.'
+        : 'This account has no password. They will need "Forgot password?" to set one before they can sign in again.' }));
     sec.append(act('Clear trusted devices', 'forgetDevices', { text: 'Their next sign-in on each device will be treated as new and send them a security email.' }));
     const danger = el('div', 'actions');
     danger.append(act('Delete account', 'delete', { danger: true, type: u.email,
@@ -596,6 +600,28 @@
       });
       f.append(lab, inp); pw.append(f, save);
 
+      const g = el('div', 'card');
+      g.appendChild(el('h2', null, 'Google sign-in'));
+      g.appendChild(el('p', 'sub', s.googleClientId ? 'On. People can use Continue with Google on the sign-in screen.'
+        : 'Off. Paste the OAuth client ID from Google Cloud to show Continue with Google on the sign-in screen.'));
+      const gf = el('div', 'field'); const gl = el('label', null, 'OAuth client ID'); gl.htmlFor = 'gcid';
+      const gi = el('input', 'input'); gi.id = 'gcid'; gi.value = s.googleClientId || ''; gi.placeholder = '1234567890-abc123.apps.googleusercontent.com';
+      gi.autocapitalize = 'off'; gi.spellcheck = false;
+      gf.append(gl, gi);
+      const gRow = el('div'); gRow.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin-top:10px';
+      const gSave = el('button', 'btn primary', 'Save'); gSave.type = 'button';
+      gSave.addEventListener('click', () => { gSave.disabled = true;
+        call('adminSaveSettings', { googleClientId: gi.value.trim() }).then(() => { toast(gi.value.trim() ? 'Google sign-in is on' : 'Google sign-in is off'); show('settings'); })
+          .catch(e => { if (token) toast(e.message); }).finally(() => { gSave.disabled = false; }); });
+      gRow.appendChild(gSave);
+      if (s.googleClientId) {
+        const gOff = el('button', 'btn danger', 'Turn off'); gOff.type = 'button';
+        gOff.addEventListener('click', () => { if (!window.confirm('Turn off Google sign-in? Accounts made with Google will need "Forgot password?" to set a password.')) return;
+          call('adminSaveSettings', { googleClientId: '' }).then(() => { toast('Google sign-in is off'); show('settings'); }).catch(e => { if (token) toast(e.message); }); });
+        gRow.appendChild(gOff);
+      }
+      g.append(gf, gRow);
+
       const admin = el('div', 'card');
       admin.appendChild(el('h2', null, 'Administrator'));
       const kv = el('div', 'kv');
@@ -615,7 +641,7 @@
           call('adminSaveSettings', { signOutOtherAdmins: true }).then(() => { toast('Other sessions signed out'); show('settings'); }).catch(e => { if (token) toast(e.message); }); });
         admin.appendChild(b);
       }
-      render(v, [access, pw, admin]);
+      render(v, [access, g, pw, admin]);
     }).catch(e => { if (token) render(v, [errorCard(e.message, () => show('settings'))]); });
   }
 
