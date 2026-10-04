@@ -590,7 +590,6 @@
   .when-line { margin: 12px 0 0; font-size: 15px; line-height: 21px; color: var(--muted); }
   .when-line strong { color: var(--ink); font-weight: 600; }
   .when-line.past, .when-line.past strong { color: var(--err); }
-  .zone-line { margin: 2px 0 0; font-size: 14px; line-height: 20px; color: var(--muted); }
   .text-btn.small { font-size: 14px; padding: 2px 0; }
   .repeat { display: flex; flex-wrap: wrap; gap: 8px; }
   .repeat select {
@@ -624,17 +623,17 @@
 
   <header class="intro">
     <h1>Reminder<br>Desk</h1>
-    <p class="lede">Pick a time. The email arrives then.</p>
+    <p class="lede">Schedule email reminders in seconds.</p>
     <ol class="steps">
-      <li><span><strong>Write the reminder</strong>Add notes, a link or a place if it helps.</span></li>
-      <li><span><strong>Choose when</strong>Set the date and time in India or Dubai time.</span></li>
-      <li><span><strong>Get the email</strong>It arrives right on time.</span></li>
+      <li><span><strong>Write your reminder</strong>Add notes, a location or a link if needed.</span></li>
+      <li><span><strong>Choose a time</strong>Pick a date and time. Your device's time zone is used automatically.</span></li>
+      <li><span><strong>Get an email</strong>We send it at the time you choose.</span></li>
     </ol>
   </header>
 
   <main class="slip">
     <div class="restoring" id="restoring" hidden aria-live="polite">
-      <span class="sr-only">Opening your reminders</span>
+      <span class="sr-only">Loading</span>
       <div class="sk sk-tabs" aria-hidden="true"></div>
       <div class="sk sk-label" aria-hidden="true"></div>
       <div class="sk sk-box" aria-hidden="true"></div>
@@ -653,7 +652,7 @@
       <form id="form" novalidate>
         <div class="field">
           <label for="message">Reminder</label>
-          <textarea id="message" rows="2" maxlength="5000" placeholder="Wish Maa happy birthday"></textarea>
+          <textarea id="message" rows="2" maxlength="5000" placeholder="What do you want to be reminded about?"></textarea>
         </div>
 
         <div class="field when" id="whenBox" tabindex="-1">
@@ -664,11 +663,6 @@
             <div class="pick-field" role="button" tabindex="0" aria-label="Choose the time"><span aria-hidden="true">Time</span><b class="pv" id="timeView" aria-hidden="true"></b><input type="time" id="time" aria-label="Time"></div>
           </div>
           <p class="when-line" id="whenLine" aria-live="polite"></p>
-          <p class="zone-line"><span id="zoneText"></span> <button type="button" class="text-btn small" id="zoneSwitch"></button></p>
-          <div hidden>
-            <input type="radio" name="zone" id="zIST" value="IST">
-            <input type="radio" name="zone" id="zGST" value="GST">
-          </div>
         </div>
 
         <div class="field">
@@ -686,12 +680,12 @@
           <div class="more-body">
             <div class="field">
               <label for="details">Notes</label>
-              <textarea id="details" rows="2" maxlength="5000" placeholder="Anything else to remember"></textarea>
+              <textarea id="details" rows="2" maxlength="5000" placeholder="Add any details"></textarea>
             </div>
             <div class="row">
               <div class="field">
-                <label for="place">Place</label>
-                <input type="text" id="place" maxlength="200" placeholder="Where it happens">
+                <label for="place">Location</label>
+                <input type="text" id="place" maxlength="200" placeholder="Add a location">
               </div>
               <div class="field">
                 <label for="link">Link</label>
@@ -720,13 +714,13 @@
             </div>
             <div class="field">
               <label for="subject">Email subject</label>
-              <input type="text" id="subject" maxlength="150" placeholder="Same as the reminder">
+              <input type="text" id="subject" maxlength="150" placeholder="Uses your reminder if left blank">
               <p class="field-hint">The date and time are added automatically.</p>
             </div>
             <div class="field" id="nameField">
               <label for="name">Your name</label>
               <input type="text" id="name" maxlength="80" autocomplete="name">
-              <p class="field-hint">Shown in the email, so the person knows who set it.</p>
+              <p class="field-hint">Shown in the email so the recipient knows who it is from.</p>
             </div>
           </div>
         </details>
@@ -746,7 +740,7 @@
           <div><dt>To</dt><dd id="doneTo"></dd></div>
         </dl>
         <div class="done-actions">
-          <button type="button" class="primary" id="again">Set another</button>
+          <button type="button" class="primary" id="again">Set another reminder</button>
           <button type="button" class="ghost" id="doneList" hidden>View my reminders</button>
         </div>
         <div class="nudge" id="doneNudge" hidden>
@@ -775,7 +769,7 @@
 
     <form id="fSignIn" novalidate>
       <h2 id="authTitle">Sign in</h2>
-      <p class="sub">See your upcoming and past reminders.</p>
+      <p class="sub">Sign in to view and manage your reminders.</p>
       <div class="field"><label for="siEmail">Email</label>
         <input type="email" id="siEmail" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false"></div>
       <div class="field"><label for="siPass">Password</label>
@@ -783,24 +777,24 @@
       <p class="error" role="alert"></p>
       <button type="submit" class="primary">Sign in</button>
       <p class="switch"><button type="button" class="text-btn" data-go="forgot1">Forgot password?</button></p>
-      <p class="switch">New here? <button type="button" class="text-btn" data-go="signup">Create an account</button></p>
+      <p class="switch">Don't have an account? <button type="button" class="text-btn" data-go="signup">Create one</button></p>
     </form>
 
     <form id="fSignUp" novalidate hidden>
       <h2>Create an account</h2>
-      <p class="sub">Optional. It keeps a history of your reminders on any device.</p>
-      <div class="field"><label for="suName">Your name</label>
+      <p class="sub">Optional. View and manage your reminders on any device.</p>
+      <div class="field"><label for="suName">Name</label>
         <input type="text" id="suName" maxlength="80" autocomplete="name"></div>
       <div class="field"><label for="suEmail">Email</label>
         <input type="email" id="suEmail" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false"></div>
-      <div class="field"><label for="suPass">Choose a password</label>
+      <div class="field"><label for="suPass">Password</label>
         <input type="password" id="suPass" autocomplete="new-password" placeholder="At least 6 characters"></div>
       <div class="field"><label for="suAccess">Access password</label>
         <input type="password" id="suAccess" autocomplete="off"></div>
-      <p class="note">The access password is the one you got with this link.</p>
+      <p class="note">Use the access password that was shared with you along with this link.</p>
       <p class="error" role="alert"></p>
       <button type="submit" class="primary">Create account</button>
-      <p class="switch">Already have one? <button type="button" class="text-btn" data-go="signin">Sign in</button></p>
+      <p class="switch">Already have an account? <button type="button" class="text-btn" data-go="signin">Sign in</button></p>
     </form>
 
     <form id="fForgot1" novalidate hidden>
@@ -809,20 +803,20 @@
       <div class="field"><label for="fpEmail">Email</label>
         <input type="email" id="fpEmail" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false"></div>
       <p class="error" role="alert"></p>
-      <button type="submit" class="primary">Email me a code</button>
+      <button type="submit" class="primary">Send code</button>
       <p class="switch"><button type="button" class="text-btn" data-go="signin">Back to sign in</button></p>
     </form>
 
     <form id="fForgot2" novalidate hidden>
       <h2>Check your email</h2>
-      <p class="sub">If <strong id="fpShown"></strong> has an account, a code is on its way. It expires in 15 minutes.</p>
+      <p class="sub">If an account exists for <strong id="fpShown"></strong>, we have sent a 6-digit code to it. The code expires in 15 minutes.</p>
       <div class="field"><label for="fpCode">Code</label>
-        <input type="text" id="fpCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6 digits"></div>
+        <input type="text" id="fpCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code"></div>
       <div class="field"><label for="fpPass">New password</label>
         <input type="password" id="fpPass" autocomplete="new-password" placeholder="At least 6 characters"></div>
       <p class="error" role="alert"></p>
-      <button type="submit" class="primary">Set new password</button>
-      <p class="switch"><button type="button" class="text-btn" data-go="forgot1">Send a new code</button></p>
+      <button type="submit" class="primary">Reset password</button>
+      <p class="switch"><button type="button" class="text-btn" data-go="forgot1">Resend code</button></p>
     </form>
   </div>
 </div>
@@ -896,7 +890,7 @@
         redirect: 'follow'
       });
     } catch (e) {
-      const err = new Error('Could not reach Reminder Desk. Check your internet connection and try again.');
+      const err = new Error("Can't connect right now. Check your internet connection and try again.");
       err.network = true;
       throw err;
     }
@@ -904,11 +898,11 @@
     try {
       data = await res.json();
     } catch (e) {
-      const err = new Error('Reminder Desk did not answer properly. Try again in a minute.');
+      const err = new Error('Something went wrong. Please try again in a moment.');
       err.network = true;
       throw err;
     }
-    if (!data.ok) throw new Error(data.error || 'Something went wrong. Try again.');
+    if (!data.ok) throw new Error(data.error || 'Something went wrong. Please try again.');
     return data.result;
   }
 
@@ -944,9 +938,6 @@
   // ---------- Start ----------
 
   (function init() {
-    const saved = store.get('rd_zone');
-    const zone = saved || (new Date().getTimezoneOffset() === -240 ? 'GST' : 'IST');
-    (zone === 'GST' ? $('zGST') : $('zIST')).checked = true;
     // How opening works, like any well-made app:
     //   - Signed in before on this device: their page shows at once, from what the device
     //     remembers, and the server confirms quietly in the background.
@@ -1007,35 +998,48 @@
   // ---------- When ----------
   // Quick choices cover most reminders in one tap. "Pick a date and time"
   // opens the phone's own date and time pickers, which allow any minute.
-  // Everything is worked out in the chosen time zone (India or Dubai).
+  // Everything uses the time zone of the person's own phone or computer.
 
-  const ZONE_OFFSET = { IST: 330, GST: 240 };
-  const ZONE_NAME = { IST: 'India time', GST: 'Dubai time' };
   const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   let quickChoice = null;   // which quick choice is selected, or 'pick'
 
-  function zoneKey() { const z = document.querySelector('input[name=zone]:checked'); return z ? z.value : 'IST'; }
-  function zoneNow() { return new Date(Date.now() + ZONE_OFFSET[zoneKey()] * 60000); }   // read with getUTC*
+  // The device's time zone: a short name (IST, GST, GMT+2...) and a full name.
+  const TZ = (function () {
+    let iana = '';
+    try { iana = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) { /* older browsers */ }
+    const KNOWN = {
+      'Asia/Kolkata': ['IST', 'India Standard Time'], 'Asia/Calcutta': ['IST', 'India Standard Time'],
+      'Asia/Dubai': ['GST', 'Gulf Standard Time'], 'Asia/Muscat': ['GST', 'Gulf Standard Time']
+    };
+    if (KNOWN[iana]) return { short: KNOWN[iana][0], long: KNOWN[iana][1] };
+    const part = style => {
+      try { return new Intl.DateTimeFormat('en-US', { timeZoneName: style }).formatToParts(new Date()).find(p => p.type === 'timeZoneName').value; }
+      catch (e) { return ''; }
+    };
+    const o = -new Date().getTimezoneOffset();
+    const gmt = 'GMT' + (o >= 0 ? '+' : '-') + Math.floor(Math.abs(o) / 60) + (Math.abs(o) % 60 ? ':' + pad(Math.abs(o) % 60) : '');
+    const short = part('short') || gmt;
+    return { short: short, long: part('long') || short };
+  })();
+
   function ymd(d) { return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()); }
   function parseYmd(s) { const [y, m, d] = s.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); }
-  function todayYmd() { return ymd(zoneNow()); }
+  function todayYmd() { const n = new Date(); return n.getFullYear() + '-' + pad(n.getMonth() + 1) + '-' + pad(n.getDate()); }
   function addDays(s, n) { const d = parseYmd(s); d.setUTCDate(d.getUTCDate() + n); return ymd(d); }
-  function nowMinutes() { const n = zoneNow(); return n.getUTCHours() * 60 + n.getUTCMinutes(); }
+  function nowMinutes() { const n = new Date(); return n.getHours() * 60 + n.getMinutes(); }
   function toMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
   function hm(mins) { return pad(Math.floor(mins / 60)) + ':' + pad(mins % 60); }
   function fmtTime(t) { const [h, m] = t.split(':').map(Number); return (h % 12 || 12) + ':' + pad(m) + ' ' + (h >= 12 ? 'PM' : 'AM'); }
-  function isPast(date, time) {
-    const today = todayYmd();
-    if (date < today) return true;
-    if (date > today) return false;
-    return toMin(time) <= nowMinutes();
-  }
-  function targetMs(date, time) {
+  function localDate(date, time) {
     const [y, m, d] = date.split('-').map(Number);
     const [h, mi] = time.split(':').map(Number);
-    return Date.UTC(y, m - 1, d, h, mi) - ZONE_OFFSET[zoneKey()] * 60000;
+    return new Date(y, m - 1, d, h, mi);
   }
+  function targetMs(date, time) { return localDate(date, time).getTime(); }
+  function isPast(date, time) { return targetMs(date, time) <= Date.now(); }
+  // Minutes ahead of UTC on that date (handles summer time in countries that have it).
+  function offsetFor(date, time) { return -localDate(date, time).getTimezoneOffset(); }
   function relative(ms) {
     const mins = Math.round((ms - Date.now()) / 60000);
     if (mins < 60) return 'in ' + Math.max(mins, 1) + (mins === 1 ? ' minute' : ' minutes');
@@ -1090,7 +1094,7 @@
       });
       box.appendChild(b);
     });
-    const pick = el('button', 'qchip', 'Pick a date and time');
+    const pick = el('button', 'qchip', 'Pick date and time');
     pick.type = 'button';
     pick.setAttribute('aria-pressed', String(quickChoice === 'pick'));
     pick.addEventListener('click', () => {
@@ -1111,7 +1115,6 @@
     $('date').min = todayYmd();
     $('date').max = addDays(todayYmd(), 364);
     renderWhenLine();
-    renderZone();
   }
 
   function renderWhenLine() {
@@ -1124,13 +1127,13 @@
       $('dateView').textContent = WEEKDAYS[d.getUTCDay()].slice(0, 3) + ', ' + d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()].slice(0, 3) + ' ' + d.getUTCFullYear();
     } else $('dateView').textContent = 'Choose';
     $('timeView').textContent = time ? fmtTime(time) : 'Choose';
-    if (!date || !time) { line.textContent = 'Choose when the email should arrive.'; return; }
-    const strong = el('strong', null, dayName(date) + ' at ' + fmtTime(time));
+    if (!date || !time) { line.textContent = 'Select when to send the reminder.'; return; }
+    const strong = el('strong', null, dayName(date) + ' at ' + fmtTime(time) + ' ' + TZ.short);
     line.textContent = '';
     line.appendChild(strong);
     if (isPast(date, time)) {
       line.classList.add('past');
-      line.appendChild(document.createTextNode('. That time has already passed.'));
+      line.appendChild(document.createTextNode('. This time has already passed.'));
       return;
     }
     let rest = ', ' + relative(targetMs(date, time)) + '.';
@@ -1139,24 +1142,13 @@
       const gap = Number($('repeatGap').value);
       const times = [];
       for (let k = 1; k < count; k++) times.push(fmtTime(hm((toMin(time) + k * gap) % 1440)));
-      rest += ' Then ' + (times.length === 1 ? times[0] : times.slice(0, -1).join(', ') + ' and ' + times[times.length - 1]) + '.';
+      rest += ' Repeats at ' + (times.length === 1 ? times[0] : times.slice(0, -1).join(', ') + ' and ' + times[times.length - 1]) + '.';
     }
     line.appendChild(document.createTextNode(rest));
   }
 
-  function renderZone() {
-    const z = zoneKey();
-    $('zoneText').textContent = 'Times are in ' + ZONE_NAME[z] + '.';
-    $('zoneSwitch').textContent = 'Use ' + ZONE_NAME[z === 'IST' ? 'GST' : 'IST'];
-  }
-
   function clearWhenError() { $('whenBox').removeAttribute('aria-invalid'); }
 
-  $('zoneSwitch').addEventListener('click', () => {
-    (zoneKey() === 'IST' ? $('zGST') : $('zIST')).checked = true;
-    store.set('rd_zone', zoneKey());
-    renderWhen();
-  });
   // Opening the date and time pickers: one tap, every time, on every kind of phone.
   const IS_IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const IS_TOUCH = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
@@ -1296,18 +1288,17 @@
     clearErrors($('form'));
 
     const messages = {
-      message: 'Write the reminder first.',
-      date: 'Choose when the email should arrive.',
-      time: 'Choose when the email should arrive.',
-      email: 'Add the email address to send it to.',
+      message: 'Enter your reminder.',
+      date: 'Select a date and time.',
+      time: 'Select a date and time.',
+      email: 'Enter an email address.',
       password: 'Enter the access password.'
     };
     const required = user ? ['message', 'date', 'time', 'email'] : ['message', 'date', 'time', 'email', 'password'];
     const missing = required.find(id => !$(id).value.trim());
     if (missing) return showError(messages[missing], missing);
-    if (isPast($('date').value, $('time').value)) return showError('That time has already passed. Choose a later one.', 'time');
+    if (isPast($('date').value, $('time').value)) return showError('This time has already passed. Choose a later time.', 'time');
 
-    const zone = document.querySelector('input[name=zone]:checked');
     const data = {
       message: $('message').value,
       subject: $('subject').value,
@@ -1316,17 +1307,18 @@
       link: $('link').value,
       date: $('date').value,
       time: $('time').value,
-      zone: zone ? zone.value : '',
+      zone: TZ.short,
+      zoneName: TZ.long,
+      offset: offsetFor($('date').value, $('time').value),
       count: Number($('repeatCount').value),
       gap: Number($('repeatGap').value),
       name: user ? '' : $('name').value,
       email: $('email').value,
       password: user ? '' : $('password').value
     };
-    store.set('rd_zone', data.zone);
 
     const btn = $('submit');
-    busy(btn, true, 'Setting reminder');
+    busy(btn, true, 'Setting reminder…');
     call('scheduleReminder', data, token || '')
       .then(res => {
         busy(btn, false);
@@ -1350,7 +1342,7 @@
         else if (/email/i.test(msg)) field = 'email';
         else if (/link/i.test(msg)) { field = 'link'; $('more').open = true; }
         else if (/name/i.test(msg)) { field = 'name'; $('more').open = true; }
-        else if (/time|date|days ahead/i.test(msg)) field = 'time';
+        else if (/time|date|in advance/i.test(msg)) field = 'time';
         showError(msg, field);
       });
   });
@@ -1443,10 +1435,10 @@
       const status = $('listStatus');
       status.hidden = false;
       status.textContent = listMode === 'upcoming'
-        ? 'Nothing scheduled right now.'
-        : 'Sent and cancelled reminders will show up here.';
+        ? 'No upcoming reminders.'
+        : 'Sent and cancelled reminders appear here.';
       if (listMode === 'upcoming') {
-        const b = el('button', 'pill-btn', 'Write a reminder');
+        const b = el('button', 'pill-btn', 'Create a reminder');
         b.type = 'button';
         b.addEventListener('click', () => showView('new'));
         status.appendChild(document.createElement('br'));
@@ -1463,7 +1455,7 @@
     const top = el('div', 'item-top');
     top.append(el('p', 'item-msg', r.message), el('span', 'badge b-' + r.status.toLowerCase(), r.status));
     li.appendChild(top);
-    li.appendChild(el('p', 'item-meta', r.when + (r.part ? ', reminder ' + r.part : '')));
+    li.appendChild(el('p', 'item-meta', r.when + (r.part ? ' (' + r.part + ')' : '')));
     li.appendChild(el('p', 'item-meta', 'To ' + r.to));
     if (r.details) li.appendChild(el('p', 'item-details', r.details));
 
@@ -1475,7 +1467,7 @@
       actions.appendChild(cancel);
       const waiting = r.series ? listData.upcoming.filter(x => x.series === r.series).length : 0;
       if (waiting > 1) {
-        const all = el('button', 'pill-btn danger', 'Cancel all ' + waiting);
+        const all = el('button', 'pill-btn danger', 'Cancel all (' + waiting + ')');
         all.type = 'button';
         all.addEventListener('click', () => cancelItem(r, all, true));
         actions.appendChild(all);
@@ -1494,7 +1486,7 @@
     const label = btn.textContent;
     if (!btn.dataset.armed) {
       btn.dataset.armed = '1';
-      btn.textContent = 'Tap again to cancel';
+      btn.textContent = 'Tap again to confirm';
       setTimeout(() => {
         if (!btn.disabled && btn.isConnected) { delete btn.dataset.armed; btn.textContent = label; }
       }, 3000);
@@ -1502,7 +1494,7 @@
     }
     const original = all ? 'Cancel all' : 'Cancel';
     delete btn.dataset.armed;
-    busy(btn, true, 'Cancelling');
+    busy(btn, true, 'Cancelling…');
     call('cancelReminder', token, r.id, !!all)
       .then(() => {
         const gone = all ? listData.upcoming.filter(x => x.series === r.series) : [r];
@@ -1535,7 +1527,6 @@
     $('email').value = r.to;
     $('more').open = !!($('subject').value || r.details || r.place || r.link);
     clearErrors($('form'));
-    if (r.zone === 'GST' || r.zone === 'IST') $('z' + r.zone).checked = true;
     setToday();
     showView('new');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1604,11 +1595,11 @@
       if (missing) {
         $(missing).setAttribute('aria-invalid', 'true');
         $(missing).focus();
-        return paneError(form, 'Fill in every field.');
+        return paneError(form, 'Please fill in all fields.');
       }
       const btn = form.querySelector('button[type=submit]');
-      const working = { fSignIn: 'Signing in', fSignUp: 'Creating account', fForgot1: 'Sending code', fForgot2: 'Saving' };
-      busy(btn, true, working[formId] || 'Working');
+      const working = { fSignIn: 'Signing in…', fSignUp: 'Creating account…', fForgot1: 'Sending code…', fForgot2: 'Resetting…' };
+      busy(btn, true, working[formId] || 'Please wait…');
       run()
         .then(() => busy(btn, false))
         .catch(err => { busy(btn, false); paneError(form, err.message); });
