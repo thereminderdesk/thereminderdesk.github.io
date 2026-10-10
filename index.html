@@ -159,7 +159,7 @@
     color: var(--ink);
   }
   .hint { font-weight: 400; color: var(--muted); }
-  input[type=text], input[type=email], input[type=password], input[type=url],
+  input[type=text], input[type=email], input[type=password], input[type=url], input[type=tel], input[type=number],
   input[type=date], input[type=time], textarea {
     width: 100%;
     font: inherit;
@@ -592,8 +592,32 @@
   .wa-card .wa-title { font-weight: 600; }
   .wa-card .wa-sub { color: var(--muted); font-size: 14px; }
   .wa-card .wa-warn { color: var(--err); font-size: 13px; }
-  .wa-step { margin: 14px 0 10px; display: flex; gap: 10px; align-items: flex-start; }
-  .wa-step b { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--lime); color: var(--on-lime); display: grid; place-items: center; font-size: 13px; }
+  /* Connect WhatsApp: one step at a time */
+  .wz-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 0 48px 10px 0; }
+  .wz-bar span { height: 4px; border-radius: 4px; background: var(--line); transition: background 0.2s; }
+  .wz-bar span.on { background: var(--ink); }
+  .wz-count { font-size: 13px; font-weight: 600; color: var(--muted); margin: 0 0 6px; }
+  .wz h2 { margin-bottom: 6px; }
+  .wz .sub b { color: var(--ink); font-weight: 600; }
+  .wa-btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 56px; border-radius: 14px;
+    background: #25D366; color: #0B2E16; font: 700 17px/1 'Figtree', system-ui, sans-serif; text-decoration: none; margin: 6px 0 10px;
+  }
+  .wa-btn:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .wz-hint { font-size: 14px; color: var(--muted); text-align: center; margin: 0 0 16px; }
+  .big-input { font-size: 20px !important; min-height: 56px !important; letter-spacing: 0.02em; }
+  .with-btn { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: stretch; }
+  .with-btn .pill-btn { min-height: 56px; border-radius: 12px; padding: 0 18px; }
+  .phone-row { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.6fr); gap: 8px; }
+  .phone-row .cc { min-height: 56px; font-size: 16px; padding-right: 30px; background-position: right 10px center; }
+  .wz-help { margin: 4px 0 16px; font-size: 14px; color: var(--muted); }
+  .wz-help summary { cursor: pointer; font-weight: 600; color: var(--ink); padding: 6px 0; }
+  .wz-help p { margin: 4px 0 6px; }
+  .consent { background: var(--field); border: 1.5px solid var(--line); border-radius: 12px; padding: 14px; margin: 4px 0 14px; }
+  .consent span { font-weight: 600; font-size: 15px; }
+  .consent small { display: block; font-weight: 400; font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .wz-done { text-align: center; padding-top: 6px; }
+  .wz-done .tick { width: 56px; height: 56px; border-radius: 50%; background: var(--lime); color: var(--on-lime); display: grid; place-items: center; margin: 4px auto 14px; }
   .check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; margin: 6px 0 4px; cursor: pointer; }
   .check input { width: 20px; height: 20px; margin: 1px 0 0; flex: none; accent-color: var(--ink); }
   .sw { position: relative; width: 50px; height: 30px; flex: none; }
@@ -948,19 +972,72 @@
     </form>
 
     <form id="fWhatsApp" novalidate hidden>
-      <h2>Connect WhatsApp</h2>
-      <p class="sub">Two quick steps, done once. After that, your reminders also arrive on WhatsApp.</p>
-      <p class="wa-step"><b>1</b> Tap the button below and send the message that's already typed. A free WhatsApp service called CallMeBot replies within a minute or two with your key.</p>
-      <a class="ghost wide-btn" id="waOpen" href="#" target="_blank" rel="noopener">Open WhatsApp</a>
-      <p class="wa-step"><b>2</b> Enter your WhatsApp number and the key from that reply.</p>
-      <div class="field"><label for="waPhone">Your WhatsApp number</label>
-        <input type="tel" id="waPhone" autocomplete="tel" placeholder="+91 98765 43210"></div>
-      <div class="field"><label for="waKey">Key from CallMeBot</label>
-        <input type="text" id="waKey" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="For example 123456"></div>
-      <label class="check"><input type="checkbox" id="waConsent"> <span>Send my reminders on WhatsApp too. They're delivered through CallMeBot, a free service, so the reminder text passes through it.</span></label>
-      <p class="error" role="alert"></p>
-      <button type="submit" class="primary">Connect</button>
-      <p class="note" style="margin-top:12px">No reply after 2 minutes? CallMeBot asks you to wait 24 hours and send the message again.</p>
+      <div class="wz-bar" aria-hidden="true"><span></span><span></span><span></span></div>
+      <p class="wz-count" id="wzCount">Step 1 of 3</p>
+
+      <section class="wz" data-step="1">
+        <h2>Say hi to the WhatsApp bot</h2>
+        <p class="sub">Reminder Desk sends WhatsApp messages through a free service called CallMeBot. It needs one message from you first.</p>
+        <a class="wa-btn" id="waOpen" href="#" target="_blank" rel="noopener">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8.5 8.5 0 0 1-12.6 7.4L3 21l1.6-5.2A8.5 8.5 0 1 1 21 12z"/></svg>
+          Open WhatsApp
+        </a>
+        <p class="wz-hint">The message is already typed for you. Tap send, then come back here.</p>
+        <button type="button" class="ghost wide-btn" id="wzSent">I've sent it</button>
+      </section>
+
+      <section class="wz" data-step="2" hidden>
+        <h2>Copy your key</h2>
+        <p class="sub">CallMeBot will reply on WhatsApp in a minute or two with a message like <b>"Your APIKEY is 123456"</b>. Copy that number here.</p>
+        <div class="field">
+          <label for="waKey">Your key</label>
+          <div class="with-btn">
+            <input type="text" id="waKey" class="big-input" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="123456">
+            <button type="button" class="pill-btn" id="waPaste">Paste</button>
+          </div>
+        </div>
+        <details class="wz-help">
+          <summary>No reply yet?</summary>
+          <p>Give it 2 minutes. If nothing arrives, CallMeBot asks you to wait 24 hours and send the message again.</p>
+          <button type="button" class="text-btn small" id="wzAgain">Open WhatsApp again</button>
+        </details>
+        <p class="error" role="alert"></p>
+        <button type="button" class="primary" id="wz2Next">Next</button>
+        <p class="switch"><button type="button" class="text-btn small" data-wz="1">Back</button></p>
+      </section>
+
+      <section class="wz" data-step="3" hidden>
+        <h2>Your WhatsApp number</h2>
+        <p class="sub">The number you just used to message the bot. Reminders will arrive there.</p>
+        <div class="field">
+          <label for="waPhone">WhatsApp number</label>
+          <div class="phone-row">
+            <select id="waCc" class="select cc" aria-label="Country code">
+              <option value="+91">+91 India</option>
+              <option value="+971">+971 UAE</option>
+              <option value="+44">+44 UK</option>
+              <option value="+1">+1 US and Canada</option>
+              <option value="+61">+61 Australia</option>
+              <option value="+">Other</option>
+            </select>
+            <input type="tel" id="waPhone" class="big-input" inputmode="tel" autocomplete="tel-national" placeholder="98765 43210">
+          </div>
+        </div>
+        <label class="check consent"><input type="checkbox" id="waConsent">
+          <span>Yes, send my reminders on WhatsApp too.<small>They come through CallMeBot, a free service, so the reminder text passes through it.</small></span></label>
+        <p class="error" role="alert"></p>
+        <button type="submit" class="primary" id="wzConnect">Connect WhatsApp</button>
+        <p class="switch"><button type="button" class="text-btn small" data-wz="2">Back</button></p>
+      </section>
+
+      <section class="wz wz-done" data-step="4" hidden>
+        <div class="tick" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        </div>
+        <h2>WhatsApp connected</h2>
+        <p class="sub">We've sent you a test message. From now on, your reminders arrive on WhatsApp as well as email.</p>
+        <button type="button" class="primary" id="wzDone">Done</button>
+      </section>
     </form>
 
     <form id="fGoogleNew" novalidate hidden>
@@ -1743,13 +1820,101 @@
       card.appendChild(d);
     }
   }
+  // ---------- Connect WhatsApp: a short guided flow, one step per screen ----------
+  let wzStep = 1, wzOpened = false;
   function openWhatsApp() {
     const digits = String((wa && wa.botNumber) || '').replace(/\D/g, '');
     $('waOpen').href = 'https://wa.me/' + digits + '?text=' + encodeURIComponent((wa && wa.activationText) || 'I allow callmebot to send me messages');
-    if (!$('waPhone').value) $('waPhone').value = TZ.short === 'IST' ? '+91 ' : TZ.short === 'GST' ? '+971 ' : '+';
+    $('waCc').value = TZ.short === 'GST' ? '+971' : '+91';
     $('waConsent').checked = false;
+    wzOpened = false;
     openAuth('whatsapp');
+    wzGo($('waKey').value ? 2 : 1);
   }
+
+  function wzGo(n) {
+    wzStep = n;
+    document.querySelectorAll('#fWhatsApp .wz').forEach(sec => { sec.hidden = Number(sec.dataset.step) !== n; });
+    clearErrors($('fWhatsApp'));
+    $('wzCount').textContent = n <= 3 ? 'Step ' + n + ' of 3' : 'All set';
+    [...document.querySelectorAll('.wz-bar span')].forEach((b, i) => b.classList.toggle('on', i < n));
+    const focus = { 2: 'waKey', 3: 'waPhone', 4: 'wzDone' }[n];
+    if (focus) setTimeout(() => { const f = $(focus); if (f && !(n === 3 && window.matchMedia('(pointer: coarse)').matches)) f.focus(); }, 60);
+  }
+  document.querySelectorAll('[data-wz]').forEach(b => b.addEventListener('click', () => wzGo(Number(b.dataset.wz))));
+
+  // Step 1: open WhatsApp. When they come back to this page, move them on by themselves.
+  $('waOpen').addEventListener('click', () => { wzOpened = true; });
+  $('wzAgain').addEventListener('click', () => { window.open($('waOpen').href, '_blank', 'noopener'); });
+  $('wzSent').addEventListener('click', () => wzGo(2));
+  const wzBack = () => { if (wzOpened && wzStep === 1 && !$('auth').hidden && document.visibilityState === 'visible') { wzOpened = false; wzGo(2); } };
+  document.addEventListener('visibilitychange', wzBack);
+  window.addEventListener('focus', wzBack);
+
+  // Step 2: the key. Accepts just the number, or the whole message pasted in.
+  function keyFrom(text) {
+    const t = String(text || '');
+    const m = /apikey[^A-Za-z0-9]*(?:is)?[^A-Za-z0-9]*([A-Za-z0-9]{3,20})/i.exec(t);
+    if (m) return m[1];
+    const only = t.replace(/\s+/g, '');
+    return /^[A-Za-z0-9]{3,20}$/.test(only) ? only : t.trim();
+  }
+  $('waKey').addEventListener('paste', e => {
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    if (text) { e.preventDefault(); $('waKey').value = keyFrom(text); clearErrors($('fWhatsApp')); }
+  });
+  $('waPaste').addEventListener('click', () => {
+    if (!navigator.clipboard || !navigator.clipboard.readText) { $('waKey').focus(); return; }
+    navigator.clipboard.readText().then(t => { $('waKey').value = keyFrom(t); clearErrors($('fWhatsApp')); $('waKey').focus(); })
+      .catch(() => { $('waKey').focus(); paneError($('fWhatsApp'), 'Press and hold in the box, then choose Paste.'); });
+  });
+  $('wz2Next').addEventListener('click', () => {
+    clearErrors($('fWhatsApp'));
+    $('waKey').value = keyFrom($('waKey').value);
+    if (!/^[A-Za-z0-9]{3,20}$/.test($('waKey').value)) {
+      $('waKey').setAttribute('aria-invalid', 'true');
+      return paneError(document.querySelector('#fWhatsApp [data-step="2"]'), 'Copy the key from the CallMeBot message. It looks like 123456.');
+    }
+    wzGo(3);
+  });
+
+  // Step 3: the number, the agreement, and connect.
+  $('waCc').addEventListener('change', () => {
+    $('waPhone').placeholder = $('waCc').value === '+' ? '+ country code and number' : '98765 43210';
+    $('waPhone').focus();
+  });
+  function fullPhone() {
+    const raw = $('waPhone').value.trim();
+    if (raw.charAt(0) === '+' || $('waCc').value === '+') return '+' + raw.replace(/\D/g, '');
+    return $('waCc').value + raw.replace(/\D/g, '').replace(/^0+/, '');
+  }
+  $('fWhatsApp').addEventListener('submit', e => {
+    e.preventDefault();
+    if (wzStep !== 3) return;
+    const sec = document.querySelector('#fWhatsApp [data-step="3"]');
+    clearErrors($('fWhatsApp'));
+    const phone = fullPhone();
+    if (!/^\+\d{8,15}$/.test(phone)) { $('waPhone').setAttribute('aria-invalid', 'true'); return paneError(sec, 'Enter your WhatsApp number, without the country code.'); }
+    if (!$('waConsent').checked) return paneError(sec, 'Tick the box to agree to get reminders on WhatsApp.');
+    const btn = $('wzConnect');
+    busy(btn, true, 'Connecting…');
+    call('connectWhatsApp', token, { phone: phone, apikey: $('waKey').value, consent: true })
+      .then(st => {
+        busy(btn, false);
+        wa = st; $('waKey').value = ''; $('waPhone').value = '';
+        wzGo(4);
+        drawWhatsApp();
+        loadMembers();
+      })
+      .catch(err => {
+        busy(btn, false);
+        if (/sign in again/i.test(err.message)) { forgetLocal(); goPane('signin'); return; }
+        paneError(sec, /didn't accept/i.test(err.message) ? "WhatsApp didn't accept that. Check the number, and that the key is the one from CallMeBot's message." : err.message);
+      });
+  });
+  $('wzDone').addEventListener('click', () => { closeAuth(); drawWhatsApp(); });
+  // As soon as they change anything, the old message goes away.
+  ['input', 'change'].forEach(ev => $('fWhatsApp').addEventListener(ev, () => clearErrors($('fWhatsApp'))));
 
   function loadList() {
     loadWhatsApp();
@@ -2143,16 +2308,6 @@
     if (!pendingSignup) { goPane('signup'); return; }
     call('signUp', pendingSignup).then(() => { $('fSignupCode').querySelector('.sub').textContent = 'We sent a new code to ' + pendingSignup.email + '. It expires in 15 minutes.'; })
       .catch(err => paneError($('fSignupCode'), err.message));
-  });
-
-  bindPane('fWhatsApp', ['waPhone', 'waKey'], () => {
-    if (!$('waConsent').checked) return Promise.reject(new Error('Tick the box to agree to receive reminders on WhatsApp.'));
-    return call('connectWhatsApp', token, { phone: $('waPhone').value, apikey: $('waKey').value, consent: true }).then(st => {
-      wa = st; $('waKey').value = '';
-      closeAuth();
-      drawWhatsApp('Connected. We sent you a test message on WhatsApp.');
-      loadMembers();
-    });
   });
 
   bindPane('fForgot1', ['fpEmail'], () =>
