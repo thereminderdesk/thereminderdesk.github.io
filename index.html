@@ -602,6 +602,12 @@
   .sw span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform 0.15s; box-shadow: 0 1px 2px rgba(0,0,0,.25); }
   .sw input:checked + span { background: var(--ink); }
   .sw input:checked + span::after { transform: translateX(20px); background: var(--lime); }
+  .wa-prompt { background: var(--teal-soft); border-color: transparent; }
+  .wa-prompt .pill-btn { background: var(--paper); border-color: transparent; }
+  .delivery { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; color: var(--muted); margin: 8px 0 0; }
+  .delivery .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); flex: none; }
+  .delivery.on .dot { background: #25D366; }
+  .delivery.on { color: var(--ink); }
   .badge.b-paused { background: var(--field); color: var(--muted); border: 1px solid var(--line); }
 
   /* ---------- When ---------- */
@@ -739,6 +745,12 @@
     </section>
 
     <section id="viewNew">
+      <div class="wa-card wa-prompt" id="waPrompt" hidden>
+        <div class="wa-row">
+          <div><div class="wa-title">Get reminders on WhatsApp</div><div class="wa-sub">Connect once, and every reminder also arrives on WhatsApp.</div></div>
+          <button type="button" class="pill-btn" id="waPromptBtn">Connect</button>
+        </div>
+      </div>
       <form id="form" novalidate>
         <div class="edit-bar" id="editBar" hidden><span>Editing a reminder</span><button type="button" class="text-btn small" id="editCancel">Cancel editing</button></div>
         <div class="field">
@@ -779,7 +791,7 @@
         <div class="field">
           <label for="email">Send to</label>
           <select id="email" class="select"></select>
-          <p class="field-hint">You, or anyone in the family who has joined Reminder Desk.</p>
+          <p class="delivery" id="delivery" aria-live="polite"></p>
         </div>
 
         <details class="more" id="more">
@@ -837,6 +849,7 @@
         </div>
         <h2 id="doneTitle">Reminder set</h2>
         <dl class="summary">
+          <div><dt>Arrives</dt><dd id="doneHow"></dd></div>
           <div><dt>Subject</dt><dd id="doneSubject"></dd></div>
           <div><dt>When</dt><dd id="doneWhen"></dd></div>
           <div><dt>To</dt><dd id="doneTo"></dd></div>
@@ -1098,27 +1111,6 @@
 
   // ---------- Start ----------
 
-  (function init() {
-    // How opening works, like any well-made app:
-    //   - Signed in before on this device: their page shows at once, from what the device
-    //     remembers, and the server confirms quietly in the background.
-    //   - Signed in, but this device has not saved their details yet: a calm placeholder of
-    //     the page shows while we check. The guest form and "Sign in" never flash up first.
-    //   - Not signed in: the normal page shows at once.
-    let cached = null;
-    try { cached = JSON.parse(store.get('rd_user') || 'null'); } catch (e) { cached = null; }
-    if (token && cached) setUser(cached);
-    if (token && !cached) setRestoring(true);
-    else renderAccount();
-
-    if (token) {
-      verifySession(cached);
-      setTimeout(loadGoogle, 1500);   // only needed if they later sign out
-    } else {
-      // Wakes the server up while a guest is typing, and loads Google sign-in if it is set up.
-      loadGoogle();
-    }
-  })();
 
   function setRestoring(on) {
     $('restoring').hidden = !on;
@@ -1467,6 +1459,7 @@
     if ($('viewNew').hidden && $('viewList').hidden && $('restoring').hidden) $('viewNew').hidden = false;
     fillMembers(members);
     loadMembers();
+    loadWhatsApp();
   }
 
   // "Send to": you first, then family members who have joined.
@@ -1483,10 +1476,33 @@
       sel.appendChild(o);
     });
     if (keep && [...sel.options].some(o => o.value === keep)) sel.value = keep;
+    drawDelivery();
   }
+  // Tells people where the reminder will arrive, before they set it.
+  function drawDelivery() {
+    const box = $('delivery');
+    if (!user || !box) return;
+    const to = $('email').value || user.email;
+    const self = to === user.email;
+    const m = members.find(x => x.email === to);
+    const onWa = self ? !!(wa && wa.on) : !!(m && m.whatsapp);
+    box.className = 'delivery' + (onWa ? ' on' : '');
+    box.textContent = '';
+    box.appendChild(el('span', 'dot'));
+    if (onWa) { box.appendChild(el('span', null, 'Arrives on WhatsApp and email.')); return; }
+    if (!self) { box.appendChild(el('span', null, 'Arrives by email. ' + (m ? m.name : 'They') + " hasn't connected WhatsApp yet.")); return; }
+    if (wa && wa.connected) { box.appendChild(el('span', null, 'Arrives by email. Your WhatsApp reminders are turned off.')); return; }
+    box.appendChild(el('span', null, 'Arrives by email.'));
+    const b = el('button', 'text-btn small', 'Add WhatsApp'); b.type = 'button';
+    b.addEventListener('click', openWhatsApp);
+    box.appendChild(b);
+  }
+  $('email').addEventListener('change', drawDelivery);
+  $('waPromptBtn').addEventListener('click', openWhatsApp);
+
   function loadMembers() {
     if (!token) return;
-    callQuiet('listMembers', token).then(list => { members = list || []; if (user) fillMembers(members); }).catch(() => {});
+    callQuiet('listMembers', token).then(list => { members = list || []; if (user) { fillMembers(members); drawDelivery(); } }).catch(() => {});
   }
   $('wSignIn').addEventListener('click', () => openAuth('signin'));
   $('wSignUp').addEventListener('click', () => openAuth('signup'));
@@ -1597,6 +1613,8 @@
         $('doneWhen').textContent = res.when;
         const who = members.find(m => m.email === res.to);
         $('doneTo').textContent = res.to === user.email ? 'You (' + res.to + ')' : (who ? who.name + ' (' + res.to + ')' : res.to);
+        const onWa = res.to === user.email ? !!(wa && wa.on) : !!(who && who.whatsapp);
+        $('doneHow').textContent = onWa ? 'WhatsApp and email' : 'Email';
         $('doneList').hidden = !res.saved;
         $('doneNudge').hidden = true;
         $('form').style.display = 'none';
@@ -1691,6 +1709,8 @@
   }
   function drawWhatsApp(note) {
     const card = $('waCard');
+    $('waPrompt').hidden = !(user && wa && !wa.connected);
+    drawDelivery();
     if (!wa) { card.hidden = true; return; }
     card.hidden = false;
     card.innerHTML = '';
@@ -2131,6 +2151,7 @@
       wa = st; $('waKey').value = '';
       closeAuth();
       drawWhatsApp('Connected. We sent you a test message on WhatsApp.');
+      loadMembers();
     });
   });
 
@@ -2150,6 +2171,31 @@
         }
         signedIn(res);
       }));
+
+  // ---------- Start ----------
+  // Runs last, once every part of the page above is ready. Starting earlier caused a
+  // signed-in phone to stop on an error before any button worked.
+  (function init() {
+    // How opening works, like any well-made app:
+    //   - Signed in before on this device: their page shows at once, from what the device
+    //     remembers, and the server confirms quietly in the background.
+    //   - Signed in, but this device has not saved their details yet: a calm placeholder of
+    //     the page shows while we check. The guest form and "Sign in" never flash up first.
+    //   - Not signed in: the normal page shows at once.
+    let cached = null;
+    try { cached = JSON.parse(store.get('rd_user') || 'null'); } catch (e) { cached = null; }
+    if (token && cached) setUser(cached);
+    if (token && !cached) setRestoring(true);
+    else renderAccount();
+
+    if (token) {
+      verifySession(cached);
+      setTimeout(loadGoogle, 1500);   // only needed if they later sign out
+    } else {
+      // Wakes the server up while a guest is typing, and loads Google sign-in if it is set up.
+      loadGoogle();
+    }
+  })();
 
   // Links from emails. "Reset password" opens the reset screen with the email and code
   // already filled in; "#forgot" opens the screen to request a new code.
