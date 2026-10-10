@@ -566,6 +566,44 @@
   .or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
   .field-hint { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
 
+  /* ---------- Repeat, send-to, edit, welcome, WhatsApp ---------- */
+  .select {
+    width: 100%; font: 500 16px/1.2 'Figtree', system-ui, sans-serif; color: var(--ink);
+    background: var(--field) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%2366665F' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center;
+    border: 1.5px solid var(--line); border-radius: 10px; min-height: 48px; padding: 0 38px 0 13px;
+    -webkit-appearance: none; appearance: none; cursor: pointer;
+  }
+  .select:focus { outline: 3px solid var(--focus-soft); border-color: var(--teal); }
+  .rep { margin-top: 16px; }
+  .days7 { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+  .days7 button { min-height: 42px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--field); color: var(--ink); font: 600 14px/1 'Figtree', system-ui, sans-serif; cursor: pointer; }
+  .days7 button[aria-pressed=true] { background: var(--lime); border-color: var(--lime); color: var(--on-lime); }
+  .rep-every { display: flex; align-items: center; gap: 10px; margin-top: 10px; color: var(--muted); }
+  .num { width: 84px !important; min-height: 44px !important; text-align: center; }
+  .rep-end { display: grid; gap: 8px; margin-top: 10px; }
+  .input-date { min-height: 48px; }
+  .edit-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--teal-soft); color: var(--ink);
+    border-radius: 10px; padding: 8px 12px; margin: -4px 0 16px; font-weight: 600; font-size: 14px; }
+  .w-title { font: 800 26px/1.15 'Bricolage Grotesque', 'Figtree', system-ui, sans-serif; letter-spacing: -0.02em; margin: 4px 0 8px; }
+  .w-sub { color: var(--muted); margin: 0 0 20px; }
+  .done-actions .ghost, .wide-btn { width: 100%; min-height: 52px; font-size: 16px; border-radius: 12px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+  .wa-card { border: 1.5px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 16px; display: grid; gap: 10px; }
+  .wa-card .wa-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .wa-card .wa-title { font-weight: 600; }
+  .wa-card .wa-sub { color: var(--muted); font-size: 14px; }
+  .wa-card .wa-warn { color: var(--err); font-size: 13px; }
+  .wa-step { margin: 14px 0 10px; display: flex; gap: 10px; align-items: flex-start; }
+  .wa-step b { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--lime); color: var(--on-lime); display: grid; place-items: center; font-size: 13px; }
+  .check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; margin: 6px 0 4px; cursor: pointer; }
+  .check input { width: 20px; height: 20px; margin: 1px 0 0; flex: none; accent-color: var(--ink); }
+  .sw { position: relative; width: 50px; height: 30px; flex: none; }
+  .sw input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; z-index: 1; }
+  .sw span { position: absolute; inset: 0; border-radius: 999px; background: var(--line); transition: background 0.15s; }
+  .sw span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform 0.15s; box-shadow: 0 1px 2px rgba(0,0,0,.25); }
+  .sw input:checked + span { background: var(--ink); }
+  .sw input:checked + span::after { transform: translateX(20px); background: var(--lime); }
+  .badge.b-paused { background: var(--field); color: var(--muted); border: 1px solid var(--line); }
+
   /* ---------- When ---------- */
   .when { border-radius: 14px; outline: none; }
   .when[aria-invalid=true] { box-shadow: 0 0 0 2px var(--err); }
@@ -666,11 +704,11 @@
 
   <header class="intro">
     <h1>Reminder<br class="wide"> Desk</h1>
-    <p class="lede">Schedule email reminders in seconds.</p>
+    <p class="lede">Reminders by email and WhatsApp, for the family.</p>
     <ol class="steps">
       <li><span><strong>Write your reminder</strong>Add notes, a location or a link if needed.</span></li>
       <li><span><strong>Choose a time</strong>Pick a date and time. Your device's time zone is used automatically.</span></li>
-      <li><span><strong>Get an email</strong>We send it at the time you choose.</span></li>
+      <li><span><strong>Get reminded</strong>By email, and on WhatsApp if you connect it. Repeating reminders take care of themselves.</span></li>
     </ol>
   </header>
 
@@ -691,8 +729,18 @@
       <button type="button" role="tab" id="tabList" aria-selected="false">My reminders</button>
     </div>
 
+    <section id="welcome" hidden>
+      <h2 class="w-title">Welcome to Reminder Desk</h2>
+      <p class="w-sub">Sign in, or create an account with the access password you were given, to set reminders by email and WhatsApp.</p>
+      <div class="done-actions">
+        <button type="button" class="primary" id="wSignIn">Sign in</button>
+        <button type="button" class="ghost" id="wSignUp">Create an account</button>
+      </div>
+    </section>
+
     <section id="viewNew">
       <form id="form" novalidate>
+        <div class="edit-bar" id="editBar" hidden><span>Editing a reminder</span><button type="button" class="text-btn small" id="editCancel">Cancel editing</button></div>
         <div class="field">
           <label for="message">Reminder</label>
           <textarea id="message" rows="2" maxlength="5000" placeholder="What do you want to be reminded about?"></textarea>
@@ -706,16 +754,32 @@
             <div class="pick-field" role="button" tabindex="0" aria-label="Choose the time"><span aria-hidden="true">Time</span><b class="pv" id="timeView" aria-hidden="true"></b><input type="time" id="time" aria-label="Time"></div>
           </div>
           <p class="when-line" id="whenLine" aria-live="polite"></p>
+          <div class="rep">
+            <label class="group-label" for="repFreq">Repeat</label>
+            <select id="repFreq" class="select">
+              <option value="none">Does not repeat</option>
+              <option value="daily">Every day</option>
+              <option value="weekdays">Every weekday (Mon to Fri)</option>
+              <option value="weekly">Every week, on chosen days</option>
+              <option value="monthly">Every month</option>
+              <option value="every">Every few days</option>
+            </select>
+            <div class="days7" id="repDays" role="group" aria-label="Days of the week" hidden></div>
+            <div class="rep-every" id="repEvery" hidden>Every <input type="number" id="repN" class="num" min="2" max="90" value="2" inputmode="numeric" aria-label="Number of days"> days</div>
+            <div class="rep-end" id="repEndWrap" hidden>
+              <select id="repEnd" class="select" aria-label="When it ends">
+                <option value="never">Never ends</option>
+                <option value="on">Ends on a date</option>
+              </select>
+              <input type="date" id="repUntil" class="input-date" aria-label="Last date" hidden>
+            </div>
+          </div>
         </div>
 
         <div class="field">
           <label for="email">Send to</label>
-          <input type="email" id="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" placeholder="you@example.com">
-        </div>
-
-        <div class="field" id="pwField">
-          <label for="password">Access password</label>
-          <input type="password" id="password" autocomplete="off">
+          <select id="email" class="select"></select>
+          <p class="field-hint">You, or anyone in the family who has joined Reminder Desk.</p>
         </div>
 
         <details class="more" id="more">
@@ -735,11 +799,11 @@
                 <input type="url" id="link" maxlength="500" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://">
               </div>
             </div>
-            <div class="field">
-              <label for="repeatCount">Repeat</label>
+            <div class="field" id="nudgeField">
+              <label for="repeatCount">Extra nudges</label>
               <div class="repeat">
                 <select id="repeatCount">
-                  <option value="1">Send once</option>
+                  <option value="1">Just once</option>
                   <option value="2">Send 2 times</option>
                   <option value="3">Send 3 times</option>
                   <option value="4">Send 4 times</option>
@@ -760,11 +824,6 @@
               <input type="text" id="subject" maxlength="150" placeholder="Uses your reminder if left blank">
               <p class="field-hint">The date and time are added automatically.</p>
             </div>
-            <div class="field" id="nameField">
-              <label for="name">Your name</label>
-              <input type="text" id="name" maxlength="80" autocomplete="name">
-              <p class="field-hint">Shown in the email so the recipient knows who it is from.</p>
-            </div>
           </div>
         </details>
 
@@ -776,7 +835,7 @@
         <div class="tick" aria-hidden="true">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
         </div>
-        <h2>Reminder set</h2>
+        <h2 id="doneTitle">Reminder set</h2>
         <dl class="summary">
           <div><dt>Subject</dt><dd id="doneSubject"></dd></div>
           <div><dt>When</dt><dd id="doneWhen"></dd></div>
@@ -794,6 +853,7 @@
     </section>
 
     <section id="viewList" hidden>
+      <div class="wa-card" id="waCard" hidden></div>
       <div class="seg light" role="tablist">
         <button type="button" role="tab" id="segUp" aria-selected="true">Upcoming<span class="count" id="countUp"></span></button>
         <button type="button" role="tab" id="segPast" aria-selected="false">Past<span class="count" id="countPast"></span></button>
@@ -862,6 +922,32 @@
       <p class="error" role="alert"></p>
       <button type="submit" class="primary">Reset password</button>
       <p class="switch"><button type="button" class="text-btn" data-go="forgot1">Resend code</button></p>
+    </form>
+
+    <form id="fSignupCode" novalidate hidden>
+      <h2>Check your email</h2>
+      <p class="sub">We sent a 6-digit code to <strong id="scWho"></strong>. Enter it to finish creating your account. It expires in 15 minutes.</p>
+      <div class="field"><label for="scCode">Code</label>
+        <input type="text" id="scCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code"></div>
+      <p class="error" role="alert"></p>
+      <button type="submit" class="primary">Create account</button>
+      <p class="switch"><button type="button" class="text-btn" id="scResend">Resend code</button></p>
+    </form>
+
+    <form id="fWhatsApp" novalidate hidden>
+      <h2>Connect WhatsApp</h2>
+      <p class="sub">Two quick steps, done once. After that, your reminders also arrive on WhatsApp.</p>
+      <p class="wa-step"><b>1</b> Tap the button below and send the message that's already typed. A free WhatsApp service called CallMeBot replies within a minute or two with your key.</p>
+      <a class="ghost wide-btn" id="waOpen" href="#" target="_blank" rel="noopener">Open WhatsApp</a>
+      <p class="wa-step"><b>2</b> Enter your WhatsApp number and the key from that reply.</p>
+      <div class="field"><label for="waPhone">Your WhatsApp number</label>
+        <input type="tel" id="waPhone" autocomplete="tel" placeholder="+91 98765 43210"></div>
+      <div class="field"><label for="waKey">Key from CallMeBot</label>
+        <input type="text" id="waKey" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="For example 123456"></div>
+      <label class="check"><input type="checkbox" id="waConsent"> <span>Send my reminders on WhatsApp too. They're delivered through CallMeBot, a free service, so the reminder text passes through it.</span></label>
+      <p class="error" role="alert"></p>
+      <button type="submit" class="primary">Connect</button>
+      <p class="note" style="margin-top:12px">No reply after 2 minutes? CallMeBot asks you to wait 24 hours and send the message again.</p>
     </form>
 
     <form id="fGoogleNew" novalidate hidden>
@@ -1037,6 +1123,7 @@
   function setRestoring(on) {
     $('restoring').hidden = !on;
     $('viewNew').hidden = on;
+    $('welcome').hidden = true;
     if (on) { $('tabs').hidden = true; $('acctOut').hidden = true; $('acctIn').hidden = true; }
   }
 
@@ -1068,8 +1155,86 @@
     $('pick').hidden = true;
     $('repeatCount').value = '1';
     $('repeatGap').value = '5';
+    setRepeat(null);
     renderWhen();
   }
+
+  // ---------- Repeat ----------
+  const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  let repDays = [];
+  (function buildDays() {
+    DAY_LETTERS.forEach((l, i) => {
+      const b = el('button', null, l); b.type = 'button';
+      b.setAttribute('aria-label', DAY_NAMES[i]);
+      b.addEventListener('click', () => {
+        repDays = repDays.indexOf(i) >= 0 ? repDays.filter(x => x !== i) : repDays.concat(i).sort();
+        drawRepeat();
+      });
+      $('repDays').appendChild(b);
+    });
+  })();
+
+  function weekdayOf(date) { return date ? parseYmd(date).getUTCDay() : new Date().getDay(); }
+
+  function drawRepeat() {
+    const f = $('repFreq').value;
+    $('repDays').hidden = f !== 'weekly';
+    $('repEvery').hidden = f !== 'every';
+    $('repEndWrap').hidden = f === 'none';
+    $('repUntil').hidden = $('repEnd').value !== 'on';
+    $('nudgeField').hidden = f !== 'none';
+    if (f === 'weekly' && !repDays.length) repDays = [weekdayOf($('date').value)];
+    [...$('repDays').children].forEach((b, i) => b.setAttribute('aria-pressed', String(repDays.indexOf(i) >= 0)));
+    if ($('date').value) $('repUntil').min = $('date').value;
+    renderWhenLine();
+  }
+
+  // What the server needs, or null for a one-off reminder.
+  function repeatData() {
+    const f = $('repFreq').value;
+    if (f === 'none') return null;
+    const r = { freq: f === 'weekdays' ? 'weekly' : f };
+    if (f === 'weekdays') r.days = [1, 2, 3, 4, 5];
+    if (f === 'weekly') r.days = repDays.length ? repDays : [weekdayOf($('date').value)];
+    if (f === 'every') r.every = Math.max(2, Math.min(90, Number($('repN').value) || 2));
+    if ($('repEnd').value === 'on' && $('repUntil').value) r.until = $('repUntil').value;
+    return r;
+  }
+
+  function describeRepeat(r) {
+    if (!r) return '';
+    let t;
+    if (r.freq === 'daily') t = 'every day';
+    else if (r.freq === 'every') t = 'every ' + r.every + ' days';
+    else if (r.freq === 'monthly') t = 'every month on the ' + ordinal(parseYmd($('date').value || todayYmd()).getUTCDate());
+    else {
+      const d = (r.days || []).slice().sort();
+      if (d.join() === '1,2,3,4,5') t = 'every weekday';
+      else if (d.length === 7) t = 'every day';
+      else { const n = d.map(x => DAY_NAMES[x]); t = 'every ' + (n.length === 1 ? n[0] : n.slice(0, -1).join(', ') + ' and ' + n[n.length - 1]); }
+    }
+    if (r.until) { const u = parseYmd(r.until); t += ' until ' + u.getUTCDate() + ' ' + MONTHS[u.getUTCMonth()].slice(0, 3); }
+    return t;
+  }
+  function ordinal(n) { const s = ['th', 'st', 'nd', 'rd'], v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); }
+
+  // Puts the controls back to a reminder's saved repeat (or "Does not repeat").
+  function setRepeat(r) {
+    repDays = [];
+    $('repN').value = '2'; $('repEnd').value = 'never'; $('repUntil').value = '';
+    if (!r) $('repFreq').value = 'none';
+    else if (r.freq === 'weekly' && (r.days || []).slice().sort().join() === '1,2,3,4,5') $('repFreq').value = 'weekdays';
+    else {
+      $('repFreq').value = r.freq;
+      if (r.freq === 'weekly') repDays = (r.days || []).slice();
+      if (r.freq === 'every') $('repN').value = String(r.every || 2);
+    }
+    if (r && r.until) { $('repEnd').value = 'on'; $('repUntil').value = r.until; }
+    drawRepeat();
+  }
+  ['repFreq', 'repEnd', 'repN', 'repUntil'].forEach(id => $(id).addEventListener('change', drawRepeat));
+  $('repN').addEventListener('input', renderWhenLine);
 
   // ---------- When ----------
   // Quick choices cover most reminders in one tap. "Pick a date and time"
@@ -1213,7 +1378,9 @@
       return;
     }
     let rest = ', ' + relative(targetMs(date, time)) + '.';
-    const count = Number($('repeatCount').value);
+    const rp = repeatData();
+    if (rp) rest += ' Then ' + describeRepeat(rp) + '.';
+    const count = rp ? 1 : Number($('repeatCount').value);
     if (count > 1) {
       const gap = Number($('repeatGap').value);
       const times = [];
@@ -1294,13 +1461,35 @@
     $('acctOut').hidden = inNow;
     $('acctIn').hidden = !inNow;
     $('tabs').hidden = !inNow;
-    $('nameField').hidden = inNow;
-    $('pwField').hidden = inNow;
-    if (inNow) {
-      $('acctName').textContent = user.name;
-      if (!$('email').value) $('email').value = user.email;
-    }
+    $('welcome').hidden = inNow || !$('restoring').hidden;
+    if (!inNow) { $('viewNew').hidden = true; $('viewList').hidden = true; return; }
+    $('acctName').textContent = user.name;
+    if ($('viewNew').hidden && $('viewList').hidden && $('restoring').hidden) $('viewNew').hidden = false;
+    fillMembers(members);
+    loadMembers();
   }
+
+  // "Send to": you first, then family members who have joined.
+  let members = [];
+  function fillMembers(list) {
+    const sel = $('email');
+    const keep = sel.value;
+    sel.innerHTML = '';
+    const mine = { name: 'You', email: user.email, me: true };
+    [mine].concat((list || []).filter(m => !m.me)).forEach(m => {
+      const o = document.createElement('option');
+      o.value = m.email;
+      o.textContent = m.me ? 'You (' + m.email + ')' : m.name + ' (' + m.email + ')';
+      sel.appendChild(o);
+    });
+    if (keep && [...sel.options].some(o => o.value === keep)) sel.value = keep;
+  }
+  function loadMembers() {
+    if (!token) return;
+    callQuiet('listMembers', token).then(list => { members = list || []; if (user) fillMembers(members); }).catch(() => {});
+  }
+  $('wSignIn').addEventListener('click', () => openAuth('signin'));
+  $('wSignUp').addEventListener('click', () => openAuth('signup'));
 
   $('signOutBtn').addEventListener('click', () => {
     const t = token;
@@ -1311,6 +1500,8 @@
   // ---------- Views ----------
 
   function showView(v) {
+    if (!user) { $('viewNew').hidden = true; $('viewList').hidden = true; $('welcome').hidden = !$('restoring').hidden; return; }
+    $('welcome').hidden = true;
     const list = v === 'list';
     $('viewNew').hidden = list;
     $('viewList').hidden = !list;
@@ -1370,7 +1561,8 @@
       email: 'Enter an email address.',
       password: 'Enter the access password.'
     };
-    const required = user ? ['message', 'date', 'time', 'email'] : ['message', 'date', 'time', 'email', 'password'];
+    if (!user) { openAuth('signin'); return; }
+    const required = ['message', 'date', 'time'];
     const missing = required.find(id => !$(id).value.trim());
     if (missing) return showError(messages[missing], missing);
     if (isPast($('date').value, $('time').value)) return showError('This time has already passed. Choose a later time.', 'time');
@@ -1388,21 +1580,25 @@
       offset: offsetFor($('date').value, $('time').value),
       count: Number($('repeatCount').value),
       gap: Number($('repeatGap').value),
-      name: user ? '' : $('name').value,
-      email: $('email').value,
-      password: user ? '' : $('password').value
+      email: $('email').value || user.email,
+      repeat: repeatData()
     };
+    if (data.repeat && data.repeat.freq === 'weekly' && !data.repeat.days.length) return showError('Choose at least one day of the week.', null);
 
     const btn = $('submit');
-    busy(btn, true, 'Setting reminder…');
-    call('scheduleReminder', data, token || '')
+    const editing = editingId;
+    busy(btn, true, editing ? 'Saving changes…' : 'Setting reminder…');
+    (editing ? call('updateReminder', token, editing, data) : call('scheduleReminder', data, token))
       .then(res => {
         busy(btn, false);
+        $('doneTitle').textContent = editing ? 'Changes saved' : 'Reminder set';
+        stopEditing();
         $('doneSubject').textContent = res.subject;
         $('doneWhen').textContent = res.when;
-        $('doneTo').textContent = res.to;
+        const who = members.find(m => m.email === res.to);
+        $('doneTo').textContent = res.to === user.email ? 'You (' + res.to + ')' : (who ? who.name + ' (' + res.to + ')' : res.to);
         $('doneList').hidden = !res.saved;
-        $('doneNudge').hidden = res.saved;
+        $('doneNudge').hidden = true;
         $('form').style.display = 'none';
         $('done').style.display = 'block';
         enter($('done'));
@@ -1422,6 +1618,39 @@
         showError(msg, field);
       });
   });
+
+  // ---------- Editing an existing reminder ----------
+  let editingId = null;
+  function stopEditing() {
+    editingId = null;
+    $('editBar').hidden = true;
+    $('submit').textContent = 'Set reminder';
+  }
+  $('editCancel').addEventListener('click', () => { stopEditing(); resetForm(); });
+
+  function editItem(r) {
+    resetForm();
+    $('message').value = r.message;
+    $('subject').value = r.subject === 'Reminder' ? '' : r.subject;
+    $('details').value = r.details;
+    $('place').value = r.place;
+    $('link').value = r.link;
+    if (![...$('email').options].some(o => o.value === r.to)) { const o = document.createElement('option'); o.value = r.to; o.textContent = r.toName + ' (' + r.to + ')'; $('email').appendChild(o); }
+    $('email').value = r.to;
+    $('more').open = !!($('subject').value || r.details || r.place || r.link);
+    quickChoice = 'pick';
+    $('pick').hidden = false;
+    $('date').value = r.date;
+    $('time').value = r.time;
+    setRepeat(r.repeat);
+    renderWhen();
+    editingId = r.id;
+    $('editBar').hidden = false;
+    $('submit').textContent = 'Save changes';
+    clearErrors($('form'));
+    showView('new');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   function resetForm() {
     ['message', 'subject', 'details', 'place', 'link'].forEach(id => $(id).value = '');
@@ -1454,7 +1683,56 @@
 
   // First visit: placeholder rows while loading. After that: show what we have at once
   // and refresh quietly in the background.
+  // ---------- WhatsApp ----------
+  let wa = null;
+  function loadWhatsApp() {
+    if (!token) return;
+    callQuiet('getWhatsApp', token).then(st => { wa = st; drawWhatsApp(); }).catch(() => {});
+  }
+  function drawWhatsApp(note) {
+    const card = $('waCard');
+    if (!wa) { card.hidden = true; return; }
+    card.hidden = false;
+    card.innerHTML = '';
+    const row = el('div', 'wa-row');
+    const txt = el('div');
+    txt.append(el('div', 'wa-title', 'WhatsApp reminders'));
+    if (!wa.connected) {
+      txt.append(el('div', 'wa-sub', 'Get your reminders on WhatsApp as well as email.'));
+      const b = el('button', 'pill-btn', 'Connect'); b.type = 'button';
+      b.addEventListener('click', openWhatsApp);
+      row.append(txt, b);
+      card.appendChild(row);
+    } else {
+      txt.append(el('div', 'wa-sub', (wa.on ? 'On for ' : 'Off for ') + wa.phone));
+      const sw = el('label', 'sw'); const inp = el('input'); inp.type = 'checkbox'; inp.checked = wa.on; inp.setAttribute('aria-label', 'Send reminders on WhatsApp');
+      sw.append(inp, el('span'));
+      inp.addEventListener('change', () => {
+        inp.disabled = true;
+        call('setWhatsApp', token, inp.checked).then(st => { wa = st; drawWhatsApp(); }).catch(err => { inp.checked = !inp.checked; alertInList(err.message); }).finally(() => { inp.disabled = false; });
+      });
+      row.append(txt, sw);
+      card.appendChild(row);
+      if (note) card.appendChild(el('div', 'wa-sub', note));
+      if (wa.lastError) card.appendChild(el('div', 'wa-warn', "The last WhatsApp message couldn't be delivered. If this keeps happening, disconnect and connect again."));
+      const d = el('button', 'text-btn small', 'Disconnect WhatsApp'); d.type = 'button'; d.style.justifySelf = 'start';
+      d.addEventListener('click', () => {
+        if (!d.dataset.armed) { d.dataset.armed = '1'; d.textContent = 'Tap again to disconnect'; setTimeout(() => { if (d.isConnected) { delete d.dataset.armed; d.textContent = 'Disconnect WhatsApp'; } }, 3000); return; }
+        call('disconnectWhatsApp', token).then(st => { wa = st; drawWhatsApp(); }).catch(err => alertInList(err.message));
+      });
+      card.appendChild(d);
+    }
+  }
+  function openWhatsApp() {
+    const digits = String((wa && wa.botNumber) || '').replace(/\D/g, '');
+    $('waOpen').href = 'https://wa.me/' + digits + '?text=' + encodeURIComponent((wa && wa.activationText) || 'I allow callmebot to send me messages');
+    if (!$('waPhone').value) $('waPhone').value = TZ.short === 'IST' ? '+91 ' : TZ.short === 'GST' ? '+971 ' : '+';
+    $('waConsent').checked = false;
+    openAuth('whatsapp');
+  }
+
   function loadList() {
+    loadWhatsApp();
     if (listLoaded) renderList(); else skeleton();
     const fetcher = listLoaded ? callQuiet : call;
     fetcher('listMyReminders', token)
@@ -1529,32 +1807,37 @@
   function itemEl(r) {
     const li = el('li', 'item' + (r.status === 'Cancelled' ? ' cancelled' : ''));
     const top = el('div', 'item-top');
-    top.append(el('p', 'item-msg', r.message), el('span', 'badge b-' + r.status.toLowerCase(), r.status));
+    const label = r.status === 'Cancelled' ? 'Deleted' : r.status;
+    top.append(el('p', 'item-msg', r.message), el('span', 'badge b-' + r.status.toLowerCase(), label));
     li.appendChild(top);
-    li.appendChild(el('p', 'item-meta', r.when + (r.part ? ' (' + r.part + ')' : '')));
-    li.appendChild(el('p', 'item-meta', 'To ' + r.to));
+    const upcoming = r.status === 'Scheduled' || r.status === 'Paused';
+    li.appendChild(el('p', 'item-meta', (upcoming && r.repeat ? 'Next: ' : '') + r.when + (r.part ? ' (' + r.part + ')' : '')));
+    if (r.repeatText) li.appendChild(el('p', 'item-meta', r.repeatText + (r.timesSent ? '. Sent ' + r.timesSent + (r.timesSent === 1 ? ' time' : ' times') + ' so far' : '')));
+    li.appendChild(el('p', 'item-meta', 'To ' + (r.toName || r.to) + (r.whatsapp === 'Sent' ? ', also on WhatsApp' : '')));
+    if (r.heldByAdmin) li.appendChild(el('p', 'item-meta', 'On hold by the admin.'));
     if (r.details) li.appendChild(el('p', 'item-details', r.details));
 
     const actions = el('div', 'item-actions');
-    if (r.status === 'Scheduled') {
-      const cancel = el('button', 'pill-btn danger', 'Cancel');
-      cancel.type = 'button';
-      cancel.addEventListener('click', () => cancelItem(r, cancel, false));
-      actions.appendChild(cancel);
+    const btn = (text, cls, fn) => { const b = el('button', 'pill-btn' + (cls ? ' ' + cls : ''), text); b.type = 'button'; b.addEventListener('click', () => fn(b)); actions.appendChild(b); return b; };
+    if (upcoming && !r.heldByAdmin) {
+      btn('Edit', '', () => editItem(r));
+      btn(r.status === 'Paused' ? 'Resume' : 'Pause', '', b => pauseItem(r, b));
+      btn('Delete', 'danger', b => cancelItem(r, b, false));
       const waiting = r.series ? listData.upcoming.filter(x => x.series === r.series).length : 0;
-      if (waiting > 1) {
-        const all = el('button', 'pill-btn danger', 'Cancel all (' + waiting + ')');
-        all.type = 'button';
-        all.addEventListener('click', () => cancelItem(r, all, true));
-        actions.appendChild(all);
-      }
+      if (waiting > 1) btn('Delete all (' + waiting + ')', 'danger', b => cancelItem(r, b, true));
+    } else if (!upcoming) {
+      btn('Use again', '', () => useAgain(r));
     }
-    const reuse = el('button', 'pill-btn', 'Use again');
-    reuse.type = 'button';
-    reuse.addEventListener('click', () => useAgain(r));
-    actions.appendChild(reuse);
     li.appendChild(actions);
     return li;
+  }
+
+  function pauseItem(r, b) {
+    const pause = r.status !== 'Paused';
+    busy(b, true, pause ? 'Pausing…' : 'Resuming…');
+    call('pauseReminder', token, r.id, pause)
+      .then(() => { listLoaded = true; loadList(); })
+      .catch(err => { busy(b, false); if (/sign in again/i.test(err.message)) { forgetLocal(); openAuth('signin'); return; } alertInList(err.message); });
   }
 
   // First tap arms the button, second tap within 3 seconds cancels.
@@ -1568,13 +1851,13 @@
       }, 3000);
       return;
     }
-    const original = all ? 'Cancel all' : 'Cancel';
+    const original = label;
     delete btn.dataset.armed;
-    busy(btn, true, 'Cancelling…');
+    busy(btn, true, 'Deleting…');
     call('cancelReminder', token, r.id, !!all)
       .then(() => {
         const gone = all ? listData.upcoming.filter(x => x.series === r.series) : [r];
-        gone.forEach(x => { x.status = 'Cancelled'; });
+        gone.forEach(x => { x.status = 'Cancelled'; x.repeatText = ''; });
         listData.upcoming = listData.upcoming.filter(x => gone.indexOf(x) < 0);
         listData.past = gone.concat(listData.past);
         renderList();
@@ -1600,10 +1883,11 @@
     $('details').value = r.details;
     $('place').value = r.place;
     $('link').value = r.link;
-    $('email').value = r.to;
+    if ([...$('email').options].some(o => o.value === r.to)) $('email').value = r.to;
     $('more').open = !!($('subject').value || r.details || r.place || r.link);
     clearErrors($('form'));
     setToday();
+    setRepeat(r.repeat ? Object.assign({}, r.repeat, { until: '' }) : null);
     showView('new');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -1611,7 +1895,7 @@
   // ---------- Sign-in panel ----------
 
   const panes = { signin: 'fSignIn', signup: 'fSignUp', forgot1: 'fForgot1', forgot2: 'fForgot2', adminCode: 'fAdminCode',
-    googleNew: 'fGoogleNew', googleLink: 'fGoogleLink' };
+    googleNew: 'fGoogleNew', googleLink: 'fGoogleLink', signupCode: 'fSignupCode', whatsapp: 'fWhatsApp' };
   let lastFocus = null;
 
   function openAuth(mode) {
@@ -1774,7 +2058,7 @@
         return paneError(form, 'Please fill in all fields.');
       }
       const btn = form.querySelector('button[type=submit]');
-      const working = { fSignIn: 'Signing in…', fSignUp: 'Creating account…', fForgot1: 'Sending code…', fForgot2: 'Resetting…' };
+      const working = { fSignIn: 'Signing in…', fSignUp: 'Sending code…', fSignupCode: 'Creating account…', fForgot1: 'Sending code…', fForgot2: 'Resetting…', fWhatsApp: 'Connecting…' };
       busy(btn, true, working[formId] || 'Please wait…');
       run()
         .then(() => busy(btn, false))
@@ -1821,11 +2105,34 @@
         location.href = '/admin.html';
       }));
 
-  bindPane('fSignUp', ['suName', 'suEmail', 'suPass', 'suAccess'], () =>
-    call('signUp', {
-      name: $('suName').value, email: $('suEmail').value,
-      password: $('suPass').value, accessPassword: $('suAccess').value, device: deviceInfo()
-    }).then(res => { $('suPass').value = ''; $('suAccess').value = ''; signedIn(res); }));
+  // Creating an account: details first, then a code sent to the email to prove it's theirs.
+  let pendingSignup = null;
+  bindPane('fSignUp', ['suName', 'suEmail', 'suPass', 'suAccess'], () => {
+    pendingSignup = { name: $('suName').value, email: $('suEmail').value,
+      password: $('suPass').value, accessPassword: $('suAccess').value, device: deviceInfo() };
+    return call('signUp', pendingSignup).then(res => {
+      if (res && res.verify) { $('scWho').textContent = res.email; $('scCode').value = ''; goPane('signupCode'); return; }
+      signedIn(res);
+    });
+  });
+  bindPane('fSignupCode', ['scCode'], () =>
+    call('signUp', Object.assign({}, pendingSignup, { code: $('scCode').value })).then(res => {
+      $('suPass').value = ''; $('suAccess').value = ''; pendingSignup = null; signedIn(res);
+    }));
+  $('scResend').addEventListener('click', () => {
+    if (!pendingSignup) { goPane('signup'); return; }
+    call('signUp', pendingSignup).then(() => { $('fSignupCode').querySelector('.sub').textContent = 'We sent a new code to ' + pendingSignup.email + '. It expires in 15 minutes.'; })
+      .catch(err => paneError($('fSignupCode'), err.message));
+  });
+
+  bindPane('fWhatsApp', ['waPhone', 'waKey'], () => {
+    if (!$('waConsent').checked) return Promise.reject(new Error('Tick the box to agree to receive reminders on WhatsApp.'));
+    return call('connectWhatsApp', token, { phone: $('waPhone').value, apikey: $('waKey').value, consent: true }).then(st => {
+      wa = st; $('waKey').value = '';
+      closeAuth();
+      drawWhatsApp('Connected. We sent you a test message on WhatsApp.');
+    });
+  });
 
   bindPane('fForgot1', ['fpEmail'], () =>
     call('requestReset', $('fpEmail').value, deviceInfo())

@@ -361,7 +361,7 @@
       add('Password resets pending', String(o.resets.pending));
       add('Locked accounts', String(o.users.locked), o.users.locked ? 'b-warn' : null);
       add('New sign-ups', o.system.signupsOpen ? 'Open' : 'Closed', o.system.signupsOpen ? 'b-ok' : 'b-mute');
-      add('Guest reminders', o.system.guestsOpen ? 'On' : 'Off', o.system.guestsOpen ? 'b-ok' : 'b-mute');
+      add('WhatsApp connected', String(o.system.whatsapp || 0) + (o.system.whatsapp === 1 ? ' person' : ' people'));
       health.appendChild(kv);
 
       const ev = el('div', 'card');
@@ -440,6 +440,7 @@
     add('Created', full(u.created));
     add('Last sign-in', full(u.lastIn));
     add('Sign-in methods', u.methods && u.methods.length ? u.methods.join(' and ') : 'None yet (can set a password with Forgot password)');
+    add('WhatsApp reminders', u.whatsapp || 'Not connected');
     add('Signed-in sessions', String(u.sessions));
     add('Trusted devices', String(u.devices));
     add('Sign-in', u.locked ? 'Locked after failed attempts' : 'Normal');
@@ -471,6 +472,8 @@
     if (u.methods && u.methods.indexOf('Google') >= 0) sec.append(act('Disconnect Google', 'unlinkGoogle', {
       text: u.methods.indexOf('Password') >= 0 ? 'They will sign in with their password instead. They can connect Google again by confirming their password.'
         : 'This account has no password. They will need "Forgot password?" to set one before they can sign in again.' }));
+    if (u.whatsapp && u.whatsapp !== 'Not connected') sec.append(act('Disconnect WhatsApp', 'disconnectWhatsApp', {
+      text: 'Their reminders will arrive by email only. They can connect WhatsApp again from My reminders.' }));
     sec.append(act('Clear trusted devices', 'forgetDevices', { text: 'Their next sign-in on each device will be treated as new and send them a security email.' }));
     const danger = el('div', 'actions');
     danger.append(act('Delete account', 'delete', { danger: true, type: u.email,
@@ -583,11 +586,11 @@
         row.append(txt, sw); return row;
       };
       access.append(tog('New sign-ups', 'Allow people to create new accounts.', 'signupsOpen', s.signupsOpen),
-        tog('Guest reminders', 'Allow reminders without an account, using the access password.', 'guestsOpen', s.guestsOpen));
+        el('p', 'hint', 'New accounts need the access password and a code sent to their email. Reminders can only go to members.'));
 
       const pw = el('div', 'card');
       pw.appendChild(el('h2', null, 'Access password'));
-      pw.appendChild(el('p', 'sub', 'Shared with family for guest reminders and for creating accounts. Changing it does not affect existing accounts.'));
+      pw.appendChild(el('p', 'sub', 'Shared with family for creating accounts. Changing it does not affect existing accounts.'));
       const f = el('div', 'field'); const lab = el('label', null, 'New access password'); lab.htmlFor = 'apw';
       const inp = el('input', 'input'); inp.id = 'apw'; inp.type = 'password'; inp.autocomplete = 'new-password';
       const save = el('button', 'btn primary', 'Change access password'); save.type = 'button'; save.style.marginTop = '10px';
@@ -641,20 +644,19 @@
           call('adminSaveSettings', { signOutOtherAdmins: true }).then(() => { toast('Other sessions signed out'); show('settings'); }).catch(e => { if (token) toast(e.message); }); });
         admin.appendChild(b);
       }
-      const fam = el('div', 'card');
-      fam.appendChild(el('h2', null, 'Family list'));
-      fam.appendChild(el('p', 'sub', 'Reminder Desk only sends emails to these addresses (plus anyone who already has an account), and only these addresses can create accounts. This keeps the Gmail account from ever emailing strangers.'));
-      const ff = el('div', 'field'); const fl = el('label', null, 'Email addresses, one per line'); fl.htmlFor = 'fam';
-      const ft = el('textarea', 'input'); ft.id = 'fam'; ft.rows = 6; ft.value = (s.approved || []).join('\n');
-      ft.autocapitalize = 'off'; ft.spellcheck = false; ft.style.minHeight = '140px';
-      ff.append(fl, ft);
-      const fs = el('button', 'btn primary', 'Save family list'); fs.type = 'button'; fs.style.marginTop = '10px';
-      fs.addEventListener('click', () => { fs.disabled = true;
-        call('adminSaveSettings', { approved: ft.value }).then(r => { ft.value = r.approved.join('\n'); toast('Family list saved'); })
-          .catch(e => { if (token) toast(e.message); }).finally(() => { fs.disabled = false; }); });
-      fam.append(ff, fs, el('p', 'hint', 'Up to ' + s.dailyLimit + ' reminders can be scheduled for any one day, to stay well inside Gmail\'s 100-emails-a-day limit.'));
+      const wa = el('div', 'card');
+      wa.appendChild(el('h2', null, 'WhatsApp (CallMeBot)'));
+      wa.appendChild(el('p', 'sub', 'Family members connect WhatsApp themselves from My reminders. If CallMeBot ever changes its WhatsApp number, update it here so the Connect button keeps working.'));
+      const wf = el('div', 'field'); const wl = el('label', null, 'CallMeBot WhatsApp number'); wl.htmlFor = 'cmb';
+      const wi = el('input', 'input'); wi.id = 'cmb'; wi.value = s.callmebotNumber || ''; wi.type = 'tel';
+      wf.append(wl, wi);
+      const ws = el('button', 'btn primary', 'Save'); ws.type = 'button'; ws.style.marginTop = '10px';
+      ws.addEventListener('click', () => { ws.disabled = true;
+        call('adminSaveSettings', { callmebotNumber: wi.value }).then(r => { wi.value = r.callmebotNumber; toast('Saved'); })
+          .catch(e => { if (token) toast(e.message); }).finally(() => { ws.disabled = false; }); });
+      wa.append(wf, ws, el('p', 'hint', 'Up to ' + s.dailyLimit + ' reminders can be scheduled for any one day, to stay well inside Gmail\'s 100-emails-a-day limit.'));
 
-      render(v, [fam, access, g, pw, admin]);
+      render(v, [access, wa, g, pw, admin]);
     }).catch(e => { if (token) render(v, [errorCard(e.message, () => show('settings'))]); });
   }
 
